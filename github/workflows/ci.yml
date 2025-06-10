@@ -6,9 +6,6 @@ jobs:
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -27,9 +24,6 @@ jobs:
   backend-lint:
     name: Backend Linting
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
