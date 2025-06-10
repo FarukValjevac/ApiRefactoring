@@ -4,11 +4,8 @@ on: [push]
 
 jobs:
   backend-tests:
-    name: Backend Tests
+    name: Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,18 +15,15 @@ jobs:
         with:
           node-version: 'lts/*'
 
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Run backend tests
+      - name: Run tests
         run: npm test
 
   backend-lint:
-    name: Backend Linting
+    name: Linting
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -39,8 +33,8 @@ jobs:
         with:
           node-version: 'lts/*'
 
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Run backend linting
+      - name: Run linting
         run: npm run lint
