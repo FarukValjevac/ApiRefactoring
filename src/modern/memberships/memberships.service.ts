@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import initialMembershipsJson from '../data/memberships.json';
-import initialMembershipPeriodsJson from '../data/membership-periods.json';
+import initialMembershipsJson from '../../data/memberships.json';
+import initialMembershipPeriodsJson from '../../data/membership-periods.json';
 import {
   Membership,
   MembershipPeriod,
@@ -77,12 +77,16 @@ export class MembershipsService {
       throw new BadRequestException('cashPriceBelow100');
     }
 
-    if (!['monthly', 'yearly', 'weekly'].includes(billingInterval)) {
+    const isBillingInterval = (
+      val: string,
+    ): val is 'monthly' | 'yearly' | 'weekly' =>
+      ['monthly', 'yearly', 'weekly'].includes(val);
+
+    if (!isBillingInterval(billingInterval)) {
       throw new BadRequestException('invalidBillingPeriods');
     }
 
-    const validatedBillingInterval: 'monthly' | 'yearly' | 'weekly' =
-      billingInterval as 'monthly' | 'yearly' | 'weekly';
+    const validatedBillingInterval = billingInterval;
 
     if (validatedBillingInterval === 'monthly') {
       if (billingPeriods > 12) {
@@ -101,7 +105,16 @@ export class MembershipsService {
     }
     // --- End Validation ---
 
-    const validFrom = dtoValidFrom ? new Date(dtoValidFrom) : new Date();
+    function parseISODate(dateStr: string): Date {
+      const parsed = new Date(dateStr);
+      if (isNaN(parsed.getTime())) {
+        throw new BadRequestException(`Invalid date string: ${dateStr}`); // IMO this was missing so I added it in this version
+      }
+      return parsed;
+    }
+
+    const validFrom = dtoValidFrom ? parseISODate(dtoValidFrom) : new Date();
+
     const validUntil = new Date(validFrom);
 
     if (validatedBillingInterval === 'monthly') {
