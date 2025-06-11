@@ -8,7 +8,7 @@ export default tseslint.config(
     ignores: ['eslint.config.mjs'],
   },
   eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.recommendedTypeChecked, 
   eslintPluginPrettierRecommended,
   {
     languageOptions: {
@@ -16,14 +16,12 @@ export default tseslint.config(
         ...globals.node,
         ...globals.jest,
       },
-      sourceType: 'commonjs',
+      sourceType: 'commonjs', 
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
-  },
-  {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
@@ -31,27 +29,22 @@ export default tseslint.config(
     },
   },
   {
-    overrides: [
-      {
-        files: ['*.js'],
-        languageOptions: {
-          parserOptions: {
-            // Don't use project service for JS files
-            projectService: false,
-          },
-          sourceType: 'module',
-        },
-        rules: {
-          // Disable TS specific rules on JS files
-          '@typescript-eslint/no-var-requires': 'off',
-          '@typescript-eslint/no-unsafe-call': 'off',
-          '@typescript-eslint/no-unsafe-member-access': 'off',
-          '@typescript-eslint/no-unsafe-assignment': 'off',
-          '@typescript-eslint/no-explicit-any': 'off',
-          '@typescript-eslint/no-floating-promises': 'off',
-          '@typescript-eslint/no-unsafe-argument': 'off',
-        },
+    files: ['*.js'], 
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
       },
-    ],
+      sourceType: 'module',
+    },
+    rules: {
+      // Disable TS specific rules on JS files
+      '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+    },
   },
 );
