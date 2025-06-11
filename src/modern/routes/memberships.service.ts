@@ -6,7 +6,7 @@ import {
   Membership,
   MembershipPeriod,
   CreateMembershipDto,
-} from '../memberships/interfaces/memberships.interfaces';
+} from './interfaces/memberships.interfaces';
 
 // Raw types that match the JSON input structure
 type RawMembership = Omit<Membership, 'validFrom' | 'validUntil'> & {

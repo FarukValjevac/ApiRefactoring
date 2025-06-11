@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MembershipsService } from './memberships.service';
-import { CreateMembershipDto } from '../memberships/interfaces/memberships.interfaces';
+import { CreateMembershipDto } from './interfaces/memberships.interfaces';
 
 describe('MembershipsService', () => {
   let service: MembershipsService;
