@@ -1,3 +1,5 @@
+Final version will be available on Monday morning :)
+
 TBA Backend init config
 
 ## ✅ Task 1 – Refactor Legacy Endpoints
