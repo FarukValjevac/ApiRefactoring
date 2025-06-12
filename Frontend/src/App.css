@@ -8,21 +8,41 @@ body {
 }
 
 .app-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  padding: 3rem 1rem;
+  display: flex; /* Use flexbox */
+  flex-direction: row; /* Arrange items in a row */
+  justify-content: center; /* Center the entire row horizontally */
+  align-items: flex-start; /* Align items to the top of the container */
+  min-height: 100vh; /* Take full viewport height */
+  padding: 3rem 1rem; /* Add some padding around the content */
+  gap: 2.5rem; /* Add space between the form and the list */
+  flex-wrap: wrap; /* Allow items to wrap to the next line on smaller screens */
 }
 
-form {
+/* Common styles for both form and list containers */
+.membership-card-container, /* This class isn't used in your current JS but can be kept if generic styling is needed */
+.membership-form-container,
+.membership-list-container { /* Apply this to both containers for shared styling */
   background: #ffffff;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
+  box-sizing: border-box;
 }
+
+
+/* Specific styles for the form */
+.membership-form-container {
+  width: 100%;
+  max-width: 500px; /* Max width for the form */
+}
+
+/* Specific styles for the list - NOW NARROWER */
+.membership-list-container {
+  width: 100%;
+  max-width: 350px; /* Adjusted: Make it narrower, e.g., 350px */
+  /* Remove margin-auto from here if it was present in JS */
+}
+
 
 h2 {
   text-align: center;
@@ -76,4 +96,81 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+
+/* Styles for the Memberships List - NO LONGER A GRID */
+.memberships-grid { /* Renamed from membershipsList for clarity */
+  display: flex; /* Changed: Use flexbox */
+  flex-direction: column; /* Changed: Stack items vertically */
+  /* grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); */ /* Removed grid property */
+  gap: 1rem; /* Smaller gap within the list */
+  margin-top: 1.5rem;
+}
+
+.membership-item-card { /* Renamed from membershipCard */
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: left;
+  background-color: #fff;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+  margin-bottom: 1rem; /* Added: Spacing between stacked items */
+}
+
+.membership-list-container {
+  width: 100%;
+  max-width: 350px; /* Kept narrower width */
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  
+  /* --- NEW STYLES FOR SCROLLBAR --- */
+  max-height: 70vh; /* Set a maximum height (e.g., 70% of viewport height) */
+  overflow-y: auto; /* Add vertical scrollbar when content overflows */
+  /* --- END NEW STYLES --- */
+}
+
+.membership-item-card:last-child {
+  margin-bottom: 0; /* No margin after the last item */
+}
+
+.membership-item-card h3 {
+    margin-top: 0;
+    color: #007bff;
+}
+
+.membership-item-card p {
+    margin: 0.5rem 0;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.warning-message {
+    color: #d66a00;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.success-message {
+    color: green;
+    font-weight: bold;
+    margin-top: 15px;
+    text-align: center;
+    padding: 10px;
+    background-color: #e6ffe6;
+    border: 1px solid green;
+    border-radius: 4px;
+}
+
+.error-message {
+    color: red;
+    font-weight: bold;
+    margin-top: 15px;
+    text-align: center;
+    padding: 10px;
+    background-color: #ffe6e6;
+    border: 1px solid red;
+    border-radius: 4px;
 }

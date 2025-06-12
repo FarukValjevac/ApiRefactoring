@@ -1,145 +1,185 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+// Remove `CSSProperties` import if no inline styles are left
 
-const plans = {
-  Gold: 50,
-  Platinum: 80,
-  Silver: 30,
+interface PlanDetail {
+  price: number;
+  defaultPaymentMethod: 'credit card' | 'cash';
+}
+
+const PLAN_DETAILS: Record<string, PlanDetail> = {
+  "Gold Plan": { price: 60, defaultPaymentMethod: "credit card" },
+  "Platinum Plan": { price: 90, defaultPaymentMethod: "credit card" },
+  "Silver Plan": { price: 40, defaultPaymentMethod: "cash" },
 };
 
-const MembershipForm = () => {
-  const [plan, setPlan] = useState('Gold');
-  const [recurringPrice, setRecurringPrice] = useState(plans['Gold']);
-  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'cash'>('credit_card');
+function MembershipForm() {
+  const [name, setName] = useState<string>('Gold Plan');
+  const [recurringPrice, setRecurringPrice] = useState<number>(PLAN_DETAILS['Gold Plan'].price);
+  const [paymentMethod, setPaymentMethod] = useState<'credit card' | 'cash'>(PLAN_DETAILS['Gold Plan'].defaultPaymentMethod);
   const [billingInterval, setBillingInterval] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
-  const [billingPeriods, setBillingPeriods] = useState(6);
-  const [validFrom, setValidFrom] = useState('');
+  const [billingPeriods, setBillingPeriods] = useState<number>(6);
+  const [validFrom, setValidFrom] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
 
-  const handlePlanChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    setPlan(selected);
-    setRecurringPrice(plans[selected as keyof typeof plans]);
-  };
+  useEffect(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    setValidFrom(`${yyyy}-${mm}-${dd}`);
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const selectedPlan = PLAN_DETAILS[name];
+    if (selectedPlan) {
+      setRecurringPrice(selectedPlan.price);
+      setPaymentMethod(selectedPlan.defaultPaymentMethod);
+    }
+  }, [name]);
 
-    const payload = {
-      name: `${plan} Plan`,
-      recurringPrice,
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setMessage('');
+
+    const formData = {
+      name,
+      recurringPrice: Number(recurringPrice),
       paymentMethod,
       billingInterval,
-      billingPeriods,
+      billingPeriods: Number(billingPeriods),
       validFrom,
     };
 
+    console.log('Sending data:', formData);
+
     try {
-      const res = await fetch('http://localhost:3000/memberships', {
+      const response = await fetch('http://localhost:3000/memberships', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
-      if (!res.ok) {
-        const error = await res.json();
-        alert(`Error: ${error.message}`);
-        return;
-      }
+      const result = await response.json();
 
-      const result = await res.json();
-      alert('Membership created successfully!');
-      console.log(result);
-    } catch (error) {
-      alert('Something went wrong!');
-      console.error(error);
+      if (response.ok) {
+        setMessage('Membership created successfully!');
+        setMessageType('success');
+        console.log('Success:', result);
+      } else {
+        setMessage(`Error: ${result.message || 'Something went wrong!'}`);
+        setMessageType('error');
+        console.error('Error:', result);
+      }
+    } catch (error: any) {
+      setMessage(`Network error: ${error.message}`);
+      setMessageType('error');
+      console.error('Fetch error:', error);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Create Membership</h2>
-
-      <div>
-        <label>Plan</label>
-        <select value={plan} onChange={handlePlanChange}>
-          {Object.keys(plans).map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label>Recurring Price (€)</label>
-        <input
-          type="number"
-          value={recurringPrice}
-          onChange={(e) => setRecurringPrice(Number(e.target.value))}
-          min={0}
-          required
-        />
-      </div>
-
-      <div>
-        <label>Payment Method</label>
-        <div className="radio-group">
-          <label>
-            <input
-              type="radio"
-              value="credit_card"
-              checked={paymentMethod === 'credit_card'}
-              onChange={() => setPaymentMethod('credit_card')}
-            />
-            Credit Card
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="cash"
-              checked={paymentMethod === 'cash'}
-              onChange={() => setPaymentMethod('cash')}
-            />
-            Cash
-          </label>
+    <div className="membership-form-container"> {/* Apply CSS class */}
+      <h2>Create New Membership</h2>
+      <form onSubmit={handleSubmit}> {/* Remove inline style */}
+        <div className="form-group">
+          <label htmlFor="planName">Choose Plan:</label>
+          <select
+            id="planName"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          >
+            {Object.keys(PLAN_DETAILS).map((plan) => (
+              <option key={plan} value={plan}>
+                {plan}
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
 
-      <div>
-        <label>Billing Interval</label>
-        <select
-          value={billingInterval}
-          onChange={(e) =>
-            setBillingInterval(e.target.value as 'weekly' | 'monthly' | 'yearly')
-          }
-        >
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="yearly">Yearly</option>
-        </select>
-      </div>
+        <div className="form-group">
+          <label>Recurring Price:</label>
+          <span style={{ fontSize: '1.2em', fontWeight: 'bold', color: '#007bff', padding: '8px 0' }}>${recurringPrice}</span>
+          {paymentMethod === 'credit card' && recurringPrice !== 59}
+        </div>
 
-      <div>
-        <label>Billing Periods</label>
-        <input
-          type="number"
-          value={billingPeriods}
-          onChange={(e) => setBillingPeriods(Number(e.target.value))}
-          min={1}
-          required
-        />
-      </div>
+        <div className="form-group">
+          <label>Payment Method:</label>
+          <div className="radio-group">
+            <label>
+              <input
+                type="radio"
+                value="credit card"
+                checked={paymentMethod === 'credit card'}
+                onChange={(e) => setPaymentMethod(e.target.value as 'credit card' | 'cash')}
+              />{' '}
+              Credit Card
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="cash"
+                checked={paymentMethod === 'cash'}
+                onChange={(e) => setPaymentMethod(e.target.value as 'credit card' | 'cash')}
+              />{' '}
+              Cash
+            </label>
+          </div>
+        </div>
 
-      <div>
-        <label>Valid From</label>
-        <input
-          type="date"
-          value={validFrom}
-          onChange={(e) => setValidFrom(e.target.value)}
-          required
-        />
-      </div>
+        <div className="form-group">
+          <label htmlFor="billingInterval">Billing Interval:</label>
+          <select
+            id="billingInterval"
+            value={billingInterval}
+            onChange={(e) => setBillingInterval(e.target.value as 'weekly' | 'monthly' | 'yearly')}
+          >
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
 
-      <button type="submit">Submit</button>
-    </form>
+       <div className="form-group">
+          <label htmlFor="billingPeriods">Number of Billing Periods:</label>
+          <input
+            type="number"
+            id="billingPeriods"
+            value={billingPeriods} 
+            onChange={(e) => {
+              if (e.target.value === '') {
+                setBillingPeriods('');
+              } else {
+                setBillingPeriods(Number(e.target.value)); 
+              }
+            }}
+            min="1"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="validFrom">Valid From:</label>
+          <input
+            type="date"
+            id="validFrom"
+            value={validFrom}
+            onChange={(e) => setValidFrom(e.target.value)}
+          />
+        </div>
+
+        <button type="submit">Create Membership</button>
+      </form>
+
+      {message && (
+        <p className={messageType === 'success' ? 'success-message' : 'error-message'}>
+          {message}
+        </p>
+      )}
+    </div>
   );
-};
+}
 
 export default MembershipForm;
