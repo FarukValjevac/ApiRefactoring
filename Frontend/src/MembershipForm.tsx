@@ -143,13 +143,19 @@ function MembershipForm() {
           </select>
         </div>
 
-        <div className="form-group">
+       <div className="form-group">
           <label htmlFor="billingPeriods">Number of Billing Periods:</label>
           <input
             type="number"
             id="billingPeriods"
-            value={billingPeriods}
-            onChange={(e) => setBillingPeriods(Number(e.target.value))}
+            value={billingPeriods} 
+            onChange={(e) => {
+              if (e.target.value === '') {
+                setBillingPeriods('');
+              } else {
+                setBillingPeriods(Number(e.target.value)); 
+              }
+            }}
             min="1"
           />
         </div>
