@@ -1,6 +1,68 @@
 Final version will be available on Monday morning :)
 
-TBA Backend init config
+## Setup
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/FarukValjevac/ApiRefactoring.git
+    cd eversports-nest
+    ```
+
+2.  **Navigate to the backend and install dependencies:**
+
+    ```bash
+    cd backend
+    npm install
+    ```
+
+    **Before starting ensure to create your own .env file in the frontend directory**
+
+    ```bash
+    # Obviously this data should not be shared in real life.
+
+    PORT=3000
+    ```
+
+3.  **Build the backend:**
+
+    ```bash
+    npm run build
+    ```
+
+4.  **Start the backend development server:**
+
+    ```bash
+    start:nest:dev // for nest backend
+    ```
+
+    ```bash
+    start:express // for express backend
+    ```
+
+5.  **Run tests:**
+
+    ```bash
+    $ npm run test
+    ```
+
+6.  **Navigate to the frontend and install dependencies:**
+
+    ```bash
+    cd ../frontend
+    npm install
+    ```
+
+7.  **Start the frontend development server:**
+    ```bash
+    npm run dev
+    ```
+8.  **Run test:**
+    ```bash
+    npm run test
+    ```
+
+The frontend will run on `http://localhost:5173/`, and the backend on `http://localhost:3000`.
 
 ## ✅ Task 1 – Refactor Legacy Endpoints
 
@@ -78,17 +140,18 @@ Returns a list of all stored memberships along with their billing periods.
 - IDs are generated using `uuid`
 - Error messages match those from legacy Express app
 
-### ⏱️ Time Estimation – Task 1
+### ⏱️ Time Estimation – Task 1 (Productive work)
 
-| Phase             | Time       |
-| :---------------- | :--------- |
-| Setup & analysis  | ~30 mins   |
-| Development       | ~4 hour    |
-| Testing           | ~30 mins   |
-| **Initial Total** | **~5 hrs** |
-| Frontend          | ~          |
-| Testing           | ~          |
-| **Total**         | **~**      |
+| Phase                      | Time          |
+| :------------------------- | :------------ |
+| Setup & analysis           | ~30 mins      |
+| Backend                    | ~4:30 hrs     |
+| Testing                    | ~30 mins      |
+| <u>**Initial Total**</u>   | **~5:30 hrs** |
+| Frontend                   | 4 hrs         |
+| Github Actions + Bugfixing | 2 hrs         |
+| Testing                    | 30 mins       |
+| <u>**Total**</u>           | **~12 hrs**   |
 
 ---
 
