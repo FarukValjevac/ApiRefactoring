@@ -98,7 +98,7 @@ function MembershipForm({ onMembershipCreated }: MembershipFormProps) {
 
         <div className="form-group">
           <label>Recurring Price:</label>
-          <span style={{ fontSize: '1.2em', fontWeight: 'bold', color: '#007bff', padding: '8px 0' }}>
+          <span style={{ fontSize: '1.2em', fontWeight: 'bold', color: '#28a293', padding: '8px 0' }}>
             ${recurringPrice}
           </span>
         </div>
@@ -166,9 +166,10 @@ function MembershipForm({ onMembershipCreated }: MembershipFormProps) {
             onChange={(e) => setValidFrom(e.target.value)}
           />
         </div>
-
-        <button type="submit">Create Membership</button>
-      </form>
+        <button type="submit" className="primary-action-button">
+          Create Membership
+        </button>      
+    </form>
 
       {message && (
         <p className={messageType === 'success' ? 'success-message' : 'error-message'}>

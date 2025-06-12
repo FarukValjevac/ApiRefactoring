@@ -47,7 +47,7 @@ const MembershipList = forwardRef<MembershipListRef>((_, ref) => {
   return (
     <div className="membership-list-container">
       <h2>All Memberships</h2>
-      <button onClick={toggleMemberships} disabled={loading}>
+      <button onClick={toggleMemberships} disabled={loading} className="primary-action-button">
         {loading ? 'Loading...' : isListVisible ? 'Hide Memberships' : 'Show All Memberships'}
       </button>
 

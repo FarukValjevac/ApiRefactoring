@@ -92,46 +92,50 @@ button {
   transition: background 0.3s ease;
 }
 
+.primary-action-button {
+  background-color: #28a293; 
+}
+
+.primary-action-button:hover {
+  background-color: #21837b; 
+}
+
 button:hover {
   background-color: #0056b3;
 }
 
-/* Styles for the Memberships List - NO LONGER A GRID */
-.memberships-grid { /* Renamed from membershipsList for clarity */
-  display: flex; /* Changed: Use flexbox */
-  flex-direction: column; /* Changed: Stack items vertically */
-  /* grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); */ /* Removed grid property */
-  gap: 1rem; /* Smaller gap within the list */
+.memberships-grid {
+  display: flex; 
+  flex-direction: column; 
+  gap: 1rem; 
   margin-top: 1.5rem;
 }
 
-.membership-item-card { /* Renamed from membershipCard */
+.membership-item-card { 
   border: 1px solid #eee;
   border-radius: 8px;
   padding: 1rem;
   text-align: left;
   background-color: #fff;
   box-shadow: 0 1px 5px rgba(0,0,0,0.05);
-  margin-bottom: 1rem; /* Added: Spacing between stacked items */
+  margin-bottom: 1rem; 
 }
 
 .membership-list-container {
   width: 100%;
-  max-width: 350px; /* Kept narrower width */
+  max-width: 350px; 
   background: #ffffff;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
-  
-  /* --- NEW STYLES FOR SCROLLBAR --- */
-  max-height: 70vh; /* Set a maximum height (e.g., 70% of viewport height) */
-  overflow-y: auto; /* Add vertical scrollbar when content overflows */
-  /* --- END NEW STYLES --- */
+  max-height: 70vh; 
+  overflow-y: auto;
+
 }
 
 .membership-item-card:last-child {
-  margin-bottom: 0; /* No margin after the last item */
+  margin-bottom: 0;
 }
 
 .membership-item-card h3 {
