@@ -78,15 +78,15 @@ Returns a list of all stored memberships along with their billing periods.
 
 ### ⏱️ Time Estimation – Task 1
 
-| Phase             | Time          |
-| :---------------- | :------------ |
-| Setup & analysis  | ~30 mins      |
-| Development       | ~4 hour       |
-| Testing           | ~30 mins      |
-| **Initial Total** | **~5 hrs**    |
-| Frontend          | ~3 mins       |
-| Testing           | ~40 hour      |
-| **Total**         | **~8:40 hrs** |
+| Phase             | Time       |
+| :---------------- | :--------- |
+| Setup & analysis  | ~30 mins   |
+| Development       | ~4 hour    |
+| Testing           | ~30 mins   |
+| **Initial Total** | **~5 hrs** |
+| Frontend          | ~          |
+| Testing           | ~          |
+| **Total**         | **~**      |
 
 ---
 
