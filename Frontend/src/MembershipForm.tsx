@@ -74,11 +74,15 @@ function MembershipForm() {
         setMessageType('error');
         console.error('Error:', result);
       }
-    } catch (error: any) {
-      setMessage(`Network error: ${error.message}`);
-      setMessageType('error');
-      console.error('Fetch error:', error);
-    }
+    } catch (error) {
+  if (error instanceof Error) {
+    setMessage(`Network error: ${error.message}`);
+  } else {
+    setMessage('A network error occurred');
+  }
+  setMessageType('error');
+  console.error('Fetch error:', error);
+}
   };
 
   return (
