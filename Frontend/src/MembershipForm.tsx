@@ -20,7 +20,7 @@ function MembershipForm({ onMembershipCreated }: MembershipFormProps) {
   const [recurringPrice, setRecurringPrice] = useState<number>(PLAN_DETAILS['Gold Plan'].price);
   const [paymentMethod, setPaymentMethod] = useState<'credit card' | 'cash'>(PLAN_DETAILS['Gold Plan'].defaultPaymentMethod);
   const [billingInterval, setBillingInterval] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
-  const [billingPeriods, setBillingPeriods] = useState<number>(6);
+  const [billingPeriods, setBillingPeriods] = useState<number | ''>(6);
   const [validFrom, setValidFrom] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
@@ -43,6 +43,12 @@ function MembershipForm({ onMembershipCreated }: MembershipFormProps) {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (billingPeriods === '' || billingPeriods < 1) {
+        alert('Please enter the number of billing periods');
+        return;
+    }
+
     setMessage('');
 
     const formData = {
@@ -140,7 +146,7 @@ function MembershipForm({ onMembershipCreated }: MembershipFormProps) {
             type="number"
             id="billingPeriods"
             value={billingPeriods}
-                       onChange={(e) => {
+            onChange={(e) => {
               if (e.target.value === '') {
                 setBillingPeriods('');
               } else {
