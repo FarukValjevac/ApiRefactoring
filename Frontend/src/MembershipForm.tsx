@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// Remove `CSSProperties` import if no inline styles are left
 
 interface PlanDetail {
   price: number;
@@ -7,13 +6,17 @@ interface PlanDetail {
 }
 
 const PLAN_DETAILS: Record<string, PlanDetail> = {
-  "Gold Plan": { price: 60, defaultPaymentMethod: "credit card" },
-  "Platinum Plan": { price: 90, defaultPaymentMethod: "credit card" },
-  "Silver Plan": { price: 40, defaultPaymentMethod: "cash" },
+  "Platinum Plan": { price: 150, defaultPaymentMethod: "credit card" },
+  "Gold Plan": { price: 100, defaultPaymentMethod: "credit card" },
+  "Silver Plan": { price: 50, defaultPaymentMethod: "credit card" },
 };
 
-function MembershipForm() {
-  const [name, setName] = useState<string>('Gold Plan');
+interface MembershipFormProps {
+  onMembershipCreated: () => void; 
+}
+
+function MembershipForm({ onMembershipCreated }: MembershipFormProps) {
+  const [name, setName] = useState<string>('Platinum Plan');
   const [recurringPrice, setRecurringPrice] = useState<number>(PLAN_DETAILS['Gold Plan'].price);
   const [paymentMethod, setPaymentMethod] = useState<'credit card' | 'cash'>(PLAN_DETAILS['Gold Plan'].defaultPaymentMethod);
   const [billingInterval, setBillingInterval] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -38,7 +41,6 @@ function MembershipForm() {
     }
   }, [name]);
 
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setMessage('');
@@ -52,14 +54,10 @@ function MembershipForm() {
       validFrom,
     };
 
-    console.log('Sending data:', formData);
-
     try {
       const response = await fetch('http://localhost:3000/memberships', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -68,46 +66,35 @@ function MembershipForm() {
       if (response.ok) {
         setMessage('Membership created successfully!');
         setMessageType('success');
-        console.log('Success:', result);
+        onMembershipCreated();
       } else {
         setMessage(`Error: ${result.message || 'Something went wrong!'}`);
         setMessageType('error');
-        console.error('Error:', result);
       }
     } catch (error) {
-  if (error instanceof Error) {
-    setMessage(`Network error: ${error.message}`);
-  } else {
-    setMessage('A network error occurred');
-  }
-  setMessageType('error');
-  console.error('Fetch error:', error);
-}
+      setMessage(error instanceof Error ? `Network error: ${error.message}` : 'A network error occurred');
+      setMessageType('error');
+    }
   };
 
   return (
-    <div className="membership-form-container"> {/* Apply CSS class */}
+    <div className="membership-form-container">
       <h2>Create New Membership</h2>
-      <form onSubmit={handleSubmit}> {/* Remove inline style */}
+      <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="planName">Choose Plan:</label>
-          <select
-            id="planName"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          >
+          <select id="planName" value={name} onChange={(e) => setName(e.target.value)}>
             {Object.keys(PLAN_DETAILS).map((plan) => (
-              <option key={plan} value={plan}>
-                {plan}
-              </option>
+              <option key={plan} value={plan}>{plan}</option>
             ))}
           </select>
         </div>
 
         <div className="form-group">
           <label>Recurring Price:</label>
-          <span style={{ fontSize: '1.2em', fontWeight: 'bold', color: '#007bff', padding: '8px 0' }}>${recurringPrice}</span>
-          {paymentMethod === 'credit card' && recurringPrice !== 59}
+          <span style={{ fontSize: '1.2em', fontWeight: 'bold', color: '#007bff', padding: '8px 0' }}>
+            ${recurringPrice}
+          </span>
         </div>
 
         <div className="form-group">
@@ -119,7 +106,7 @@ function MembershipForm() {
                 value="credit card"
                 checked={paymentMethod === 'credit card'}
                 onChange={(e) => setPaymentMethod(e.target.value as 'credit card' | 'cash')}
-              />{' '}
+              />
               Credit Card
             </label>
             <label>
@@ -128,7 +115,7 @@ function MembershipForm() {
                 value="cash"
                 checked={paymentMethod === 'cash'}
                 onChange={(e) => setPaymentMethod(e.target.value as 'credit card' | 'cash')}
-              />{' '}
+              />
               Cash
             </label>
           </div>
@@ -147,13 +134,13 @@ function MembershipForm() {
           </select>
         </div>
 
-       <div className="form-group">
+        <div className="form-group">
           <label htmlFor="billingPeriods">Number of Billing Periods:</label>
           <input
             type="number"
             id="billingPeriods"
-            value={billingPeriods} 
-            onChange={(e) => {
+            value={billingPeriods}
+                       onChange={(e) => {
               if (e.target.value === '') {
                 setBillingPeriods('');
               } else {

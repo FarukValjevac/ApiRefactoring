@@ -1,47 +1,19 @@
-import React, { useState } from 'react';
-// Remove `CSSProperties` import
+import { useState, forwardRef, useImperativeHandle } from 'react';
+import type { MembershipItem } from './interfaces/MembershipInterface';
 
-interface MembershipDetail {
-  id: number;
-  uuid: string;
-  name: string;
-  userId: number;
-  recurringPrice: number;
-  validFrom: string;
-  validUntil: string;
-  state: string;
-  assignedBy?: string;
-  paymentMethod: string | null;
-  billingInterval: string;
-  billingPeriods: number;
+export interface MembershipListRef {
+  refresh: () => void;
 }
 
-interface MembershipPeriodDetail {
-    id: number;
-    uuid: string;
-    membership: number;
-    start: string;
-    end: string;
-    state: string;
-}
-
-interface MembershipItem {
-  membership: MembershipDetail;
-  periods: MembershipPeriodDetail[];
-}
-
-
-function MembershipList() {
+const MembershipList = forwardRef<MembershipListRef>((_, ref) => {
   const [memberships, setMemberships] = useState<MembershipItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isListVisible, setIsListVisible] = useState<boolean>(false);
+  const [isListVisible, setIsListVisible] = useState(false);
 
   const fetchMemberships = async () => {
     setLoading(true);
     setError(null);
-    setMemberships([]);
-
     try {
       const response = await fetch('http://localhost:3000/memberships');
       if (!response.ok) {
@@ -50,28 +22,36 @@ function MembershipList() {
       }
       const data: MembershipItem[] = await response.json();
       setMemberships(data);
-      setIsListVisible(true);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unknown error occurred while fetching memberships.');
-      }
-      setIsListVisible(false);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
     } finally {
       setLoading(false);
     }
   };
 
+  const toggleMemberships = async () => {
+    if (!isListVisible) {
+      await fetchMemberships();
+    }
+    setIsListVisible(!isListVisible);
+  };
+
+  useImperativeHandle(ref, () => ({
+    refresh: async () => {
+      if (isListVisible) {
+        await fetchMemberships();
+      }
+    },
+  }));
+
   return (
     <div className="membership-list-container">
       <h2>All Memberships</h2>
-      <button onClick={fetchMemberships} disabled={loading}>
-        {loading ? 'Loading...' : 'Show All Memberships'}
+      <button onClick={toggleMemberships} disabled={loading}>
+        {loading ? 'Loading...' : isListVisible ? 'Hide Memberships' : 'Show All Memberships'}
       </button>
 
       {error && <p className="error-message">Error: {error}</p>}
-
       {isListVisible && memberships.length === 0 && !loading && !error && (
         <p>No memberships found.</p>
       )}
@@ -92,6 +72,6 @@ function MembershipList() {
       )}
     </div>
   );
-}
+});
 
 export default MembershipList;
