@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body, ValidationPipe } from '@nestjs/common';
 import { MembershipsService } from './memberships.service';
 import {
   Membership,
@@ -16,7 +16,7 @@ export class MembershipsController {
    */
   @Post()
   create(
-    @Body() createMembershipDto: CreateMembershipDto, // Extracts the request body and types it as CreateMembershipDto
+    @Body(ValidationPipe) createMembershipDto: CreateMembershipDto, // Extracts the request body and types it as CreateMembershipDto
   ): { membership: Membership; membershipPeriods: MembershipPeriod[] } {
     // Calls the service method to handle the business logic
     return this.membershipsService.createMembership(createMembershipDto);
