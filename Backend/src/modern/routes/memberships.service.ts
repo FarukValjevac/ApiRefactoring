@@ -1,12 +1,14 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+// memberships.service.ts
+import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import initialMembershipsJson from '../../data/memberships.json';
 import initialMembershipPeriodsJson from '../../data/membership-periods.json';
 import {
   Membership,
   MembershipPeriod,
-  CreateMembershipDto,
-} from './interfaces/memberships.interfaces';
+} from './dto/interfaces/memberships.interfaces';
+import { CreateMembershipDto } from './dto/create-membership.dto';
+import { BillingInterval } from './types/memberships-types';
 
 // Raw types that match the JSON input structure
 type RawMembership = Omit<Membership, 'validFrom' | 'validUntil'> & {
@@ -28,7 +30,6 @@ function convertMembershipDates(data: RawMembership[]): Membership[] {
   }));
 }
 
-// Typed conversion functions
 function convertMembershipPeriodDates(
   data: RawMembershipPeriod[],
 ): MembershipPeriod[] {
@@ -49,146 +50,41 @@ const membershipPeriods: MembershipPeriod[] = convertMembershipPeriodDates(
 
 @Injectable()
 export class MembershipsService {
+  private readonly DEFAULT_USER_ID = 2000;
+
   createMembership(createMembershipDto: CreateMembershipDto): {
     membership: Membership;
     membershipPeriods: MembershipPeriod[];
   } {
-    const userId = 2000;
+    const validFrom = createMembershipDto.validFrom
+      ? new Date(createMembershipDto.validFrom)
+      : new Date();
 
-    const {
-      name,
-      recurringPrice,
-      paymentMethod,
-      billingInterval,
-      billingPeriods,
-      validFrom: dtoValidFrom,
-    } = createMembershipDto;
+    const validUntil = this.calculateValidUntil(
+      validFrom,
+      createMembershipDto.billingInterval,
+      createMembershipDto.billingPeriods,
+    );
 
-    // --- Validation ---
-    if (!name || recurringPrice === undefined || recurringPrice === null) {
-      throw new BadRequestException('missingMandatoryFields');
-    }
+    const state = this.determineMembershipState(validFrom, validUntil);
 
-    if (recurringPrice < 0) {
-      throw new BadRequestException('negativeRecurringPrice');
-    }
+    const newMembership = this.buildMembership(
+      createMembershipDto,
+      validFrom,
+      validUntil,
+      state,
+    );
 
-    if (recurringPrice > 100 && paymentMethod === 'cash') {
-      throw new BadRequestException('cashPriceBelow100');
-    }
-
-    const isBillingInterval = (
-      val: string,
-    ): val is 'monthly' | 'yearly' | 'weekly' =>
-      ['monthly', 'yearly', 'weekly'].includes(val);
-
-    if (!isBillingInterval(billingInterval)) {
-      throw new BadRequestException('invalidBillingPeriods');
-    }
-
-    const validatedBillingInterval = billingInterval;
-
-    if (validatedBillingInterval === 'monthly') {
-      if (billingPeriods > 12) {
-        throw new BadRequestException('billingPeriodsMoreThan12Months');
-      }
-      if (billingPeriods < 6) {
-        throw new BadRequestException('billingPeriodsLessThan6Months');
-      }
-    } else if (validatedBillingInterval === 'yearly') {
-      if (billingPeriods < 3) {
-        throw new BadRequestException('billingPeriodsLessThan3Years');
-      }
-      if (billingPeriods > 10) {
-        throw new BadRequestException('billingPeriodsMoreThan10Years');
-      }
-    }
-    // --- End Validation ---
-
-    function parseISODate(dateStr: string): Date {
-      const parsed = new Date(dateStr);
-      if (isNaN(parsed.getTime())) {
-        throw new BadRequestException(`Invalid date string: ${dateStr}`); // IMO this was missing so I added it in this version
-      }
-      return parsed;
-    }
-
-    const validFrom = dtoValidFrom ? parseISODate(dtoValidFrom) : new Date();
-
-    const validUntil = new Date(validFrom);
-
-    if (validatedBillingInterval === 'monthly') {
-      validUntil.setMonth(validFrom.getMonth() + billingPeriods);
-    } else if (validatedBillingInterval === 'yearly') {
-      validUntil.setMonth(validFrom.getMonth() + billingPeriods * 12);
-    } else if (validatedBillingInterval === 'weekly') {
-      validUntil.setDate(validFrom.getDate() + billingPeriods * 7);
-    }
-
-    let state: Membership['state'] = 'active';
-    const now = new Date();
-
-    if (validFrom > now) {
-      state = 'pending';
-    }
-    if (validUntil < now) {
-      state = 'expired';
-    }
-
-    const nextMembershipId =
-      memberships.length > 0
-        ? Math.max(...memberships.map((m) => m.id)) + 1
-        : 1;
-
-    const newMembership: Membership = {
-      id: nextMembershipId,
-      uuid: uuidv4(),
-      name: name,
-      state: state,
-      validFrom: validFrom,
-      validUntil: validUntil,
-      userId: userId,
-      paymentMethod: paymentMethod,
-      recurringPrice: recurringPrice,
-      billingPeriods: billingPeriods,
-      billingInterval: validatedBillingInterval,
-    };
     memberships.push(newMembership);
 
-    const newMembershipPeriods: MembershipPeriod[] = [];
-    let periodStart = new Date(validFrom);
+    const newMembershipPeriods = this.createMembershipPeriods(
+      newMembership,
+      validFrom,
+      createMembershipDto.billingInterval,
+      createMembershipDto.billingPeriods,
+    );
 
-    let maxExistingPeriodId = 0;
-    if (membershipPeriods.length > 0) {
-      maxExistingPeriodId = Math.max(...membershipPeriods.map((p) => p.id));
-    }
-
-    for (let i = 0; i < billingPeriods; i++) {
-      const currentPeriodValidFrom = new Date(periodStart);
-      const currentPeriodValidUntil = new Date(currentPeriodValidFrom);
-
-      if (validatedBillingInterval === 'monthly') {
-        currentPeriodValidUntil.setMonth(currentPeriodValidFrom.getMonth() + 1);
-      } else if (validatedBillingInterval === 'yearly') {
-        currentPeriodValidUntil.setMonth(
-          currentPeriodValidFrom.getMonth() + 12,
-        );
-      } else if (validatedBillingInterval === 'weekly') {
-        currentPeriodValidUntil.setDate(currentPeriodValidFrom.getDate() + 7);
-      }
-
-      const period: MembershipPeriod = {
-        id: maxExistingPeriodId + newMembershipPeriods.length + 1,
-        uuid: uuidv4(),
-        membership: newMembership.id,
-        start: currentPeriodValidFrom,
-        end: currentPeriodValidUntil,
-        state: 'issued',
-      };
-      newMembershipPeriods.push(period);
-      membershipPeriods.push(period);
-      periodStart = new Date(currentPeriodValidUntil);
-    }
+    membershipPeriods.push(...newMembershipPeriods);
 
     return {
       membership: newMembership,
@@ -200,13 +96,131 @@ export class MembershipsService {
     membership: Membership;
     periods: MembershipPeriod[];
   }[] {
-    const rows: { membership: Membership; periods: MembershipPeriod[] }[] = [];
-    for (const membership of memberships) {
-      const periods = membershipPeriods.filter(
-        (p) => p.membership === membership.id,
-      );
-      rows.push({ membership, periods });
+    return memberships.map((membership) => ({
+      membership,
+      periods: membershipPeriods.filter((p) => p.membership === membership.id),
+    }));
+  }
+
+  private calculateValidUntil(
+    validFrom: Date,
+    billingInterval: BillingInterval,
+    billingPeriods: number,
+  ): Date {
+    const validUntil = new Date(validFrom);
+
+    switch (billingInterval) {
+      case 'monthly':
+        validUntil.setMonth(validFrom.getMonth() + billingPeriods);
+        break;
+      case 'yearly':
+        validUntil.setMonth(validFrom.getMonth() + billingPeriods * 12);
+        break;
+      case 'weekly':
+        validUntil.setDate(validFrom.getDate() + billingPeriods * 7);
+        break;
     }
-    return rows;
+
+    return validUntil;
+  }
+
+  private determineMembershipState(
+    validFrom: Date,
+    validUntil: Date,
+  ): Membership['state'] {
+    const now = new Date();
+
+    if (validFrom > now) {
+      return 'pending';
+    }
+    if (validUntil < now) {
+      return 'expired';
+    }
+    return 'active';
+  }
+
+  private buildMembership(
+    dto: CreateMembershipDto,
+    validFrom: Date,
+    validUntil: Date,
+    state: Membership['state'],
+  ): Membership {
+    const nextMembershipId = this.getNextMembershipId();
+
+    return {
+      id: nextMembershipId,
+      uuid: uuidv4(),
+      name: dto.name,
+      state: state,
+      validFrom: validFrom,
+      validUntil: validUntil,
+      userId: this.DEFAULT_USER_ID,
+      paymentMethod: dto.paymentMethod,
+      recurringPrice: dto.recurringPrice,
+      billingPeriods: dto.billingPeriods,
+      billingInterval: dto.billingInterval,
+    };
+  }
+
+  private createMembershipPeriods(
+    membership: Membership,
+    validFrom: Date,
+    billingInterval: 'monthly' | 'yearly' | 'weekly',
+    billingPeriods: number,
+  ): MembershipPeriod[] {
+    const periods: MembershipPeriod[] = [];
+    let periodStart = new Date(validFrom);
+    const maxExistingPeriodId = this.getMaxPeriodId();
+
+    for (let i = 0; i < billingPeriods; i++) {
+      const periodEnd = this.calculatePeriodEnd(periodStart, billingInterval);
+
+      const period: MembershipPeriod = {
+        id: maxExistingPeriodId + periods.length + 1,
+        uuid: uuidv4(),
+        membership: membership.id,
+        start: new Date(periodStart),
+        end: periodEnd,
+        state: 'issued',
+      };
+
+      periods.push(period);
+      periodStart = new Date(periodEnd);
+    }
+
+    return periods;
+  }
+
+  private calculatePeriodEnd(
+    periodStart: Date,
+    billingInterval: 'monthly' | 'yearly' | 'weekly',
+  ): Date {
+    const periodEnd = new Date(periodStart);
+
+    switch (billingInterval) {
+      case 'monthly':
+        periodEnd.setMonth(periodStart.getMonth() + 1);
+        break;
+      case 'yearly':
+        periodEnd.setMonth(periodStart.getMonth() + 12);
+        break;
+      case 'weekly':
+        periodEnd.setDate(periodStart.getDate() + 7);
+        break;
+    }
+
+    return periodEnd;
+  }
+
+  private getNextMembershipId(): number {
+    return memberships.length > 0
+      ? Math.max(...memberships.map((m) => m.id)) + 1
+      : 1;
+  }
+
+  private getMaxPeriodId(): number {
+    return membershipPeriods.length > 0
+      ? Math.max(...membershipPeriods.map((p) => p.id))
+      : 0;
   }
 }

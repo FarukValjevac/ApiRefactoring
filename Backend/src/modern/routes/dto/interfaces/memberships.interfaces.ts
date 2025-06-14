@@ -1,3 +1,5 @@
+import { BillingInterval } from '../../types/memberships-types';
+
 export interface Membership {
   id: number;
   uuid: string;
@@ -8,7 +10,7 @@ export interface Membership {
   validUntil: Date;
   state: string;
   paymentMethod: string;
-  billingInterval: string;
+  billingInterval: BillingInterval;
   billingPeriods: number;
 }
 
@@ -19,13 +21,4 @@ export interface MembershipPeriod {
   start: Date;
   end: Date;
   state: string;
-}
-
-export interface CreateMembershipDto {
-  name: string;
-  recurringPrice: number;
-  paymentMethod: string;
-  billingInterval: string;
-  billingPeriods: number;
-  validFrom?: string;
 }
