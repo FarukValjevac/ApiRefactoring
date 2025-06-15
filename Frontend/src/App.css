@@ -5,21 +5,29 @@ body {
   padding: 0;
 }
 
+/* DECISION: Use Flexbox for the main application layout.
+  This allows for easy alignment and spacing of the main components (form and list).
+  - `flex-direction: row`: Arranges form and list side-by-side on larger screens.
+  - `justify-content: center`: Keeps the content centered horizontally.
+  - `flex-wrap: wrap`: Allows the items to stack vertically on smaller screens.
+*/
 .app-container {
-  display: flex; /* Use flexbox */
-  flex-direction: row; /* Arrange items in a row */
-  justify-content: center; /* Center the entire row horizontally */
-  align-items: flex-start; /* Align items to the top of the container */
-  min-height: 100vh; /* Take full viewport height */
-  padding: 3rem 1rem; /* Add some padding around the content */
-  gap: 2.5rem; /* Add space between the form and the list */
-  flex-wrap: wrap; /* Allow items to wrap to the next line on smaller screens */
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 3rem 1rem;
+  gap: 2.5rem; 
+  flex-wrap: wrap;
 }
 
-/* Common styles for both form and list containers */
-.membership-card-container, /* This class isn't used in your current JS but can be kept if generic styling is needed */
+/* DECISION: Define a shared "card" style for container elements.
+  This promotes consistency (DRY principle) for the form and list containers,
+  giving them a uniform appearance with shadows and rounded corners.
+*/
 .membership-form-container,
-.membership-list-container { /* Apply this to both containers for shared styling */
+.membership-list-container {
   background: #ffffff;
   padding: 2rem;
   border-radius: 12px;
@@ -27,20 +35,24 @@ body {
   box-sizing: border-box;
 }
 
-
-/* Specific styles for the form */
+/* Specific width for the membership creation form. */
 .membership-form-container {
   width: 100%;
-  max-width: 500px; /* Max width for the form */
+  max-width: 500px;
 }
 
-/* Specific styles for the list - NOW NARROWER */
+/* Specific styling for the membership list.
+  DECISION: Make the list narrower than the form to create a more balanced
+  visual hierarchy when viewed side-by-side.
+  UX DECISION: Add a max-height and overflow for the list. 
+  This prevents the list from making the page excessively long if it contains many items. 
+*/
 .membership-list-container {
   width: 100%;
-  max-width: 350px; /* Adjusted: Make it narrower, e.g., 350px */
-  /* Remove margin-auto from here if it was present in JS */
+  max-width: 350px;
+  max-height: 75vh;
+  overflow-y: auto;
 }
-
 
 h2 {
   text-align: center;
@@ -49,6 +61,7 @@ h2 {
   color: #333;
 }
 
+/* Standard styling for form elements for a consistent look and feel. */
 form > div {
   margin-bottom: 1.2rem;
 }
@@ -80,6 +93,7 @@ input[type="radio"] {
   padding-top: 0.2rem;
 }
 
+/* Base button style. */
 button {
   width: 100%;
   padding: 0.8rem;
@@ -92,46 +106,36 @@ button {
   transition: background 0.3s ease;
 }
 
-.primary-action-button {
-  background-color: #28a293; 
-}
-
-.primary-action-button:hover {
-  background-color: #21837b; 
-}
-
 button:hover {
   background-color: #0056b3;
 }
 
+/* Specific style for primary call-to-action buttons. */
+.primary-action-button {
+  background-color: #28a293;
+}
+
+.primary-action-button:hover {
+  background-color: #21837b;
+}
+
+/* Container for the list of membership cards. */
 .memberships-grid {
-  display: flex; 
-  flex-direction: column; 
-  gap: 1rem; 
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   margin-top: 1.5rem;
 }
 
-.membership-item-card { 
+/* Individual card styling for each membership item in the list. */
+.membership-item-card {
   border: 1px solid #eee;
   border-radius: 8px;
   padding: 1rem;
   text-align: left;
   background-color: #fff;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
-  margin-bottom: 1rem; 
-}
-
-.membership-list-container {
-  width: 100%;
-  max-width: 350px; 
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
-  max-height: 70vh; 
-  overflow-y: auto;
-
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
 }
 
 .membership-item-card:last-child {
@@ -139,40 +143,35 @@ button:hover {
 }
 
 .membership-item-card h3 {
-    margin-top: 0;
-    color: #007bff;
+  margin-top: 0;
+  color: #007bff;
 }
 
 .membership-item-card p {
-    margin: 0.5rem 0;
-    color: #555;
-    font-size: 0.95rem;
+  margin: 0.5rem 0;
+  color: #555;
+  font-size: 0.95rem;
 }
 
-.warning-message {
-    color: #d66a00;
-    font-size: 0.9em;
-    margin-top: 5px;
-}
-
+/* Styling for user feedback messages (success and error). */
 .success-message {
-    color: green;
-    font-weight: bold;
-    margin-top: 15px;
-    text-align: center;
-    padding: 10px;
-    background-color: #e6ffe6;
-    border: 1px solid green;
-    border-radius: 4px;
+  color: green;
+  font-weight: bold;
+  margin-top: 15px;
+  text-align: center;
+  padding: 10px;
+  background-color: #e6ffe6;
+  border: 1px solid green;
+  border-radius: 4px;
 }
 
 .error-message {
-    color: red;
-    font-weight: bold;
-    margin-top: 15px;
-    text-align: center;
-    padding: 10px;
-    background-color: #ffe6e6;
-    border: 1px solid red;
-    border-radius: 4px;
+  color: red;
+  font-weight: bold;
+  margin-top: 15px;
+  text-align: center;
+  padding: 10px;
+  background-color: #ffe6e6;
+  border: 1px solid red;
+  border-radius: 4px;
 }
