@@ -3,7 +3,7 @@ import { MembershipsService } from './memberships.service';
 import {
   Membership,
   MembershipPeriod,
-} from './dto/interfaces/memberships.interfaces';
+} from './interfaces/memberships.interfaces';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 
 @Controller('memberships') // This maps HTTP requests to /memberships

@@ -6,7 +6,7 @@ import initialMembershipPeriodsJson from '../../data/membership-periods.json';
 import {
   Membership,
   MembershipPeriod,
-} from './dto/interfaces/memberships.interfaces';
+} from './interfaces/memberships.interfaces';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { BillingInterval } from './types/memberships-types';
 

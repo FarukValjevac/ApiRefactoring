@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { MembershipsController } from './memberships.controller';
 import { MembershipsService } from './memberships.service';
@@ -6,7 +7,7 @@ import { BillingInterval } from './types/memberships-types';
 import {
   Membership,
   MembershipPeriod,
-} from './dto/interfaces/memberships.interfaces';
+} from './interfaces/memberships.interfaces';
 
 describe('MembershipsController', () => {
   let controller: MembershipsController;

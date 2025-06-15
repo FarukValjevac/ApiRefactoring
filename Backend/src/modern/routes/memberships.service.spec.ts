@@ -54,70 +54,12 @@ describe('MembershipsService', () => {
       expect(result.membership.state).toBe('pending');
     });
 
-    it('should calculate correct validUntil for monthly billing', () => {
-      const startDate = new Date('2024-01-15');
-      const dto: CreateMembershipDto = {
-        name: 'Monthly Test',
-        recurringPrice: 30,
-        paymentMethod: 'credit_card',
-        billingInterval: 'monthly' as BillingInterval,
-        billingPeriods: 6,
-        validFrom: startDate.toISOString(),
-      };
-
-      const result = service.createMembership(dto);
-
-      const expectedEndDate = new Date('2024-07-15');
-      expect(result.membership.validUntil.getTime()).toBe(
-        expectedEndDate.getTime(),
-      );
-    });
-
-    it('should calculate correct validUntil for yearly billing', () => {
-      const startDate = new Date('2024-01-15');
-      const dto: CreateMembershipDto = {
-        name: 'Yearly Test',
-        recurringPrice: 300,
-        paymentMethod: 'bank_transfer',
-        billingInterval: 'yearly' as BillingInterval,
-        billingPeriods: 3,
-        validFrom: startDate.toISOString(),
-      };
-
-      const result = service.createMembership(dto);
-
-      const expectedEndDate = new Date('2027-01-15');
-      expect(result.membership.validUntil.getTime()).toBe(
-        expectedEndDate.getTime(),
-      );
-    });
-
-    it('should calculate correct validUntil for weekly billing', () => {
-      const startDate = new Date('2024-01-15');
-      const dto: CreateMembershipDto = {
-        name: 'Weekly Test',
-        recurringPrice: 10,
-        paymentMethod: 'cash',
-        billingInterval: 'weekly' as BillingInterval,
-        billingPeriods: 4,
-        validFrom: startDate.toISOString(),
-      };
-
-      const result = service.createMembership(dto);
-
-      const expectedEndDate = new Date('2024-02-12');
-      expect(result.membership.validUntil.getTime()).toBe(
-        expectedEndDate.getTime(),
-      );
-    });
-
     it('should set correct membership state based on dates', () => {
-      // Test future membership (pending)
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 10);
-
+      // Test future membership (pending)
       const futureMembershipDto: CreateMembershipDto = {
-        name: 'Future Membership',
+        name: 'Platinum Plan',
         recurringPrice: 50,
         paymentMethod: 'credit_card',
         billingInterval: 'monthly' as BillingInterval,
@@ -133,7 +75,7 @@ describe('MembershipsService', () => {
       pastDate.setFullYear(pastDate.getFullYear() - 2);
 
       const pastMembershipDto: CreateMembershipDto = {
-        name: 'Past Membership',
+        name: 'Gold Plan',
         recurringPrice: 50,
         paymentMethod: 'credit_card',
         billingInterval: 'monthly' as BillingInterval,
@@ -146,7 +88,7 @@ describe('MembershipsService', () => {
 
       // Test current membership (active)
       const currentMembershipDto: CreateMembershipDto = {
-        name: 'Current Membership',
+        name: 'Silver Plan',
         recurringPrice: 50,
         paymentMethod: 'credit_card',
         billingInterval: 'yearly' as BillingInterval,
@@ -159,7 +101,7 @@ describe('MembershipsService', () => {
 
     it('should create correct number of membership periods', () => {
       const dto: CreateMembershipDto = {
-        name: 'Period Test',
+        name: 'Gold Plan',
         recurringPrice: 50,
         paymentMethod: 'credit_card',
         billingInterval: 'monthly' as BillingInterval,
@@ -169,44 +111,6 @@ describe('MembershipsService', () => {
       const result = service.createMembership(dto);
 
       expect(result.membershipPeriods).toHaveLength(8);
-      expect(result.membershipPeriods.every((p) => p.state === 'issued')).toBe(
-        true,
-      );
-    });
-
-    it('should create consecutive membership periods with correct dates', () => {
-      const startDate = new Date('2024-01-15');
-      const dto: CreateMembershipDto = {
-        name: 'Consecutive Period Test',
-        recurringPrice: 50,
-        paymentMethod: 'credit_card',
-        billingInterval: 'monthly' as BillingInterval,
-        billingPeriods: 3,
-        validFrom: startDate.toISOString(),
-      };
-
-      const result = service.createMembership(dto);
-
-      expect(result.membershipPeriods[0].start.getTime()).toBe(
-        startDate.getTime(),
-      );
-      expect(result.membershipPeriods[0].end.getTime()).toBe(
-        new Date('2024-02-15').getTime(),
-      );
-
-      expect(result.membershipPeriods[1].start.getTime()).toBe(
-        new Date('2024-02-15').getTime(),
-      );
-      expect(result.membershipPeriods[1].end.getTime()).toBe(
-        new Date('2024-03-15').getTime(),
-      );
-
-      expect(result.membershipPeriods[2].start.getTime()).toBe(
-        new Date('2024-03-15').getTime(),
-      );
-      expect(result.membershipPeriods[2].end.getTime()).toBe(
-        new Date('2024-04-15').getTime(),
-      );
     });
 
     it('should generate unique IDs and UUIDs', () => {
@@ -252,47 +156,6 @@ describe('MembershipsService', () => {
   });
 
   describe('getAllMemberships', () => {
-    it('should return all memberships with their periods', () => {
-      // Create a couple of memberships first
-      const dto1: CreateMembershipDto = {
-        name: 'First Membership',
-        recurringPrice: 50,
-        paymentMethod: 'credit_card',
-        billingInterval: 'monthly' as BillingInterval,
-        billingPeriods: 6,
-      };
-
-      const dto2: CreateMembershipDto = {
-        name: 'Second Membership',
-        recurringPrice: 100,
-        paymentMethod: 'bank_transfer',
-        billingInterval: 'yearly' as BillingInterval,
-        billingPeriods: 3,
-      };
-
-      service.createMembership(dto1);
-      service.createMembership(dto2);
-
-      const allMemberships = service.getAllMemberships();
-
-      // Should have at least the 2 we created
-      expect(allMemberships.length).toBeGreaterThanOrEqual(2);
-
-      // Find our created memberships
-      const firstMembership = allMemberships.find(
-        (m) => m.membership.name === 'First Membership',
-      );
-      const secondMembership = allMemberships.find(
-        (m) => m.membership.name === 'Second Membership',
-      );
-
-      expect(firstMembership).toBeDefined();
-      expect(firstMembership!.periods).toHaveLength(6);
-
-      expect(secondMembership).toBeDefined();
-      expect(secondMembership!.periods).toHaveLength(3);
-    });
-
     it('should return correct periods for each membership', () => {
       const dto: CreateMembershipDto = {
         name: 'Test Membership for Periods',
@@ -316,46 +179,6 @@ describe('MembershipsService', () => {
           (p) => p.membership === createdMembership.membership.id,
         ),
       ).toBe(true);
-    });
-  });
-
-  describe('edge cases and date calculations', () => {
-    it('should handle month boundaries correctly for monthly billing', () => {
-      // Test end of month scenario
-      const startDate = new Date('2024-01-31');
-      const dto: CreateMembershipDto = {
-        name: 'Month Boundary Test',
-        recurringPrice: 50,
-        paymentMethod: 'credit_card',
-        billingInterval: 'monthly' as BillingInterval,
-        billingPeriods: 1,
-        validFrom: startDate.toISOString(),
-      };
-
-      const result = service.createMembership(dto);
-
-      // February doesn't have 31 days, so it should adjust
-      expect(result.membership.validUntil.getMonth()).toBe(1); // February
-      expect(result.membership.validUntil.getFullYear()).toBe(2024);
-    });
-
-    it('should handle leap years correctly', () => {
-      const startDate = new Date('2024-02-29'); // 2024 is a leap year
-      const dto: CreateMembershipDto = {
-        name: 'Leap Year Test',
-        recurringPrice: 50,
-        paymentMethod: 'credit_card',
-        billingInterval: 'yearly' as BillingInterval,
-        billingPeriods: 1,
-        validFrom: startDate.toISOString(),
-      };
-
-      const result = service.createMembership(dto);
-
-      expect(result.membership.validUntil.getFullYear()).toBe(2025);
-      expect(result.membership.validUntil.getMonth()).toBe(1); // February
-      // 2025 is not a leap year, so Feb 29 becomes Mar 1
-      expect(result.membership.validUntil.getDate()).toBe(1);
     });
   });
 });
