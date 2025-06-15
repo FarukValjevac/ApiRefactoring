@@ -4,26 +4,7 @@
 
 - [Setup](#setup)
 - [Task 1 – Backend Modernization](Backend/README.md)
-  - [Goal](Backend/README.md#goal)
-  - [Technologies Used](Backend/README.md#technologies-used)
-  - [API Endpoints](Backend/README.md#api-endpoints)
-  - [Architecture Decisions](Backend/README.md#architecture-decisions)
-  - [Implementation Details](Backend/README.md#implementation-details)
-  - [Time Estimation](Backend/README.md#time-estimation)
-  - [Final Notes](Backend/README.md#final-notes)
 - [Task 2 – Architecture Overview](Arch/README.md)
-  - [Goal](Arch/README.md#goal)
-  - [Architecture Overview](Arch/README.md#architecture-overview)
-  - [Key Components](Arch/README.md#key-components)
-  - [Process Flow](Arch/README.md#process-flow)
-  - [Architectural Decisions](Arch/README.md#architectural-decisions)
-  - [Scalability Strategies](Arch/README.md#scalability-strategies)
-  - [Reliability & Error Handling](Arch/README.md#reliability--error-handling)
-  - [Key Assumptions](Arch/README.md#key-assumptions)
-  - [Security Considerations](Arch/README.md#security-considerations)
-  - [Cost Optimization](Arch/README.md#cost-optimization)
-  - [Future Enhancements](Arch/README.md#future-enhancements)
-  - [Conclusion](Arch/README.md#conclusion)
 
 ## Setup
 
