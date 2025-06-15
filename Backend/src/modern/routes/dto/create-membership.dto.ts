@@ -10,10 +10,18 @@ import {
   ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
+  IsNotEmpty,
 } from 'class-validator';
 import { BillingInterval } from '../types/memberships-types';
 
-// Custom validator for cash payment limit
+/**
+ * DECISION: Use custom validators with legacy error messages
+ * This ensures we can return the exact error codes from the legacy system
+ */
+
+/**
+ * Custom validator for cash payment limit
+ */
 @ValidatorConstraint({ name: 'cashPriceLimit', async: false })
 export class CashPriceLimitConstraint implements ValidatorConstraintInterface {
   validate(recurringPrice: number, args: ValidationArguments) {
@@ -25,11 +33,11 @@ export class CashPriceLimitConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage() {
-    return 'Cash payments cannot exceed 100';
+    // Return legacy error code
+    return 'cashPriceBelow100';
   }
 }
 
-// Custom decorator for cash price limit
 export function CashPriceLimit(validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
     registerDecorator({
@@ -42,7 +50,10 @@ export function CashPriceLimit(validationOptions?: ValidationOptions) {
   };
 }
 
-// Custom validator for billing periods based on interval
+/**
+ * Custom validator for billing periods based on interval
+ * Returns specific legacy error codes based on the validation failure
+ */
 @ValidatorConstraint({ name: 'billingPeriodsRange', async: false })
 export class BillingPeriodsRangeConstraint
   implements ValidatorConstraintInterface
@@ -56,7 +67,7 @@ export class BillingPeriodsRangeConstraint
       case 'yearly':
         return billingPeriods >= 3 && billingPeriods <= 10;
       case 'weekly':
-        return billingPeriods >= 1; // No specific limit for weekly
+        return billingPeriods >= 1;
       default:
         return true;
     }
@@ -64,19 +75,38 @@ export class BillingPeriodsRangeConstraint
 
   defaultMessage(args: ValidationArguments) {
     const object = args.object as CreateMembershipDto;
+    const billingPeriods = args.value as number;
 
+    /**
+     * Return exact legacy error codes based on the specific validation failure
+     */
     switch (object.billingInterval) {
       case 'monthly':
-        return 'Monthly billing periods must be between 6 and 12';
+        if (billingPeriods > 12) {
+          return 'billingPeriodsMoreThan12Months';
+        }
+        if (billingPeriods < 6) {
+          return 'billingPeriodsLessThan6Months';
+        }
+        break;
       case 'yearly':
-        return 'Yearly billing periods must be between 3 and 10';
-      default:
-        return 'Invalid billing periods for the selected interval';
+        if (billingPeriods > 10) {
+          return 'billingPeriodsMoreThan10Years';
+        }
+        if (billingPeriods > 3) {
+          /**
+           * NOTE: Legacy code has a bug here - the message says "LessThan3Years"
+           * but the condition checks for MORE than 3 years
+           * Preserving this for backward compatibility
+           */
+          return 'billingPeriodsLessThan3Years';
+        }
+        break;
     }
+    return 'invalidBillingPeriods';
   }
 }
 
-// Custom decorator for billing periods range
 export function BillingPeriodsRange(validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
     registerDecorator({
@@ -90,22 +120,36 @@ export function BillingPeriodsRange(validationOptions?: ValidationOptions) {
 }
 
 export class CreateMembershipDto {
-  @IsString()
+  /**
+   * DECISION: Use @IsNotEmpty() along with @IsString() to ensure the field is required
+   * This will help us detect missing mandatory fields
+   */
+  @IsNotEmpty({ message: 'missingMandatoryFields' })
+  @IsString({ message: 'missingMandatoryFields' })
   name: string;
 
-  @IsNumber()
-  @Min(0, { message: 'Recurring price cannot be negative' })
+  @IsNotEmpty({ message: 'missingMandatoryFields' })
+  @IsNumber({}, { message: 'missingMandatoryFields' })
+  @Min(0, { message: 'negativeRecurringPrice' })
   @CashPriceLimit()
   recurringPrice: number;
 
-  @IsEnum(['cash', 'credit_card', 'bank_transfer'])
+  /**
+   * NOTE: In legacy code, invalid payment method would likely fail silently
+   * or be caught elsewhere. Adding validation for completeness.
+   */
+  @IsEnum(['cash', 'credit_card', 'bank_transfer'], {
+    message: 'invalidPaymentMethod',
+  })
   paymentMethod: string;
 
-  @IsEnum(['monthly', 'weekly', 'yearly'])
+  @IsEnum(['monthly', 'weekly', 'yearly'], {
+    message: 'invalidBillingPeriods',
+  })
   billingInterval: BillingInterval;
 
-  @IsNumber()
-  @Min(1)
+  @IsNumber({}, { message: 'invalidBillingPeriods' })
+  @Min(1, { message: 'invalidBillingPeriods' })
   @BillingPeriodsRange()
   billingPeriods: number;
 

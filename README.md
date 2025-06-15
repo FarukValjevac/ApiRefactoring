@@ -1,179 +1,90 @@
-Final version will be available on Monday morning :)
+# Membership API Refactoring
+
+## 📋 Table of Contents
+
+- [Setup](#setup)
+- [Task 1 – Backend Modernization](Backend/README.md)
+  - [Goal](Backend/README.md#goal)
+  - [Technologies Used](Backend/README.md#technologies-used)
+  - [API Endpoints](Backend/README.md#api-endpoints)
+  - [Architecture Decisions](Backend/README.md#architecture-decisions)
+  - [Implementation Details](Backend/README.md#implementation-details)
+  - [Time Estimation](Backend/README.md#time-estimation)
+  - [Final Notes](Backend/README.md#final-notes)
+- [Task 2 – Architecture Overview](Arch/README.md)
+  - [Goal](Arch/README.md#goal)
+  - [Architecture Overview](Arch/README.md#architecture-overview)
+  - [Key Components](Arch/README.md#key-components)
+  - [Process Flow](Arch/README.md#process-flow)
+  - [Architectural Decisions](Arch/README.md#architectural-decisions)
+  - [Scalability Strategies](Arch/README.md#scalability-strategies)
+  - [Reliability & Error Handling](Arch/README.md#reliability--error-handling)
+  - [Key Assumptions](Arch/README.md#key-assumptions)
+  - [Security Considerations](Arch/README.md#security-considerations)
+  - [Cost Optimization](Arch/README.md#cost-optimization)
+  - [Future Enhancements](Arch/README.md#future-enhancements)
+  - [Conclusion](Arch/README.md#conclusion)
 
 ## Setup
 
-1.  **Clone the repository:**
+1. **Clone the repository:**
 
-    ```bash
-    git clone https://github.com/FarukValjevac/ApiRefactoring.git
-    cd eversports-nest
-    ```
+   ```bash
+   git clone https://github.com/FarukValjevac/ApiRefactoring.git
+   cd eversports-nest
+   ```
 
-2.  **Navigate to the backend and install dependencies:**
+2. **Navigate to the backend and install dependencies:**
 
-    ```bash
-    cd backend
-    npm install
-    ```
+   ```bash
+   cd backend
+   npm install
+   ```
 
-    **Before starting ensure to create your own .env file in the frontend directory**
+3. **Create your .env file in the backend directory:**
 
-    ```bash
-    # Obviously this data should not be shared in real life.
+   ```bash
+   # secret .env variables should never be provided in the README
+   PORT=3000
+   ```
 
-    PORT=3000
-    ```
+4. **Build the backend:**
 
-3.  **Build the backend:**
+   ```bash
+   npm run build
+   ```
 
-    ```bash
-    npm run build
-    ```
+5. **Start the backend development server:**
 
-4.  **Start the backend development server:**
+   ```bash
+   npm run start:nest:dev  # for NestJS backend
+   npm run start:express   # for Express backend (legacy)
+   ```
 
-    ```bash
-    start:nest:dev // for nest backend
-    ```
+6. **Run backend tests:**
 
-    ```bash
-    start:express // for express backend
-    ```
+   ```bash
+   npm run test
+   ```
 
-5.  **Run tests:**
+7. **Navigate to the frontend and install dependencies:**
 
-    ```bash
-    $ npm run test
-    ```
+   ```bash
+   cd ../frontend
+   npm install
+   ```
 
-6.  **Navigate to the frontend and install dependencies:**
+8. **Start the frontend development server:**
 
-    ```bash
-    cd ../frontend
-    npm install
-    ```
+   ```bash
+   npm run dev
+   ```
 
-7.  **Start the frontend development server:**
-    ```bash
-    npm run dev
-    ```
-8.  **Run test:**
-    ```bash
-    npm run test
-    ```
+9. **Run frontend tests:**
+   ```bash
+   npm run test
+   ```
 
 The frontend will run on `http://localhost:5173/`, and the backend on `http://localhost:3000`.
 
-## ✅ Task 1 – Refactor Legacy Endpoints
-
-### 🎯 Goal
-
-Refactor legacy Express endpoints `/legacy/memberships` (GET & POST) into a modern, maintainable NestJS backend using TypeScript, separating business logic, ensuring validation, and maintaining original functionality and output structure.
-
-### 🛠️ Technologies Used
-
-- **NestJS** – Modular server-side framework for Node.js
-- **TypeScript** – Strong typing and developer tooling
-- **uuid** – For generating unique identifiers
-- **Mock JSON Files** – Used to simulate a database
-
-### 📌 Endpoints
-
-#### POST `/memberships`
-
-Creates a new membership and auto-generates billing periods based on business rules.
-
-**Example Request Body:**
-
-```json
-{
-  "name": "Gold Plan",
-  "recurringPrice": 60,
-  "paymentMethod": "credit card",
-  "billingInterval": "monthly",
-  "billingPeriods": 6,
-  "validFrom": "2024-07-01"
-}
-```
-
-Example Response:
-
-```json
-{
-  "membership": {
-    "id": 4,
-    "uuid": "192542ac-d300-415d-9626-852f3412c875",
-    "name": "Gold Plan",
-    "state": "expired",
-    "validFrom": "2024-07-01T00:00:00.000Z",
-    "validUntil": "2025-01-01T01:00:00.000Z",
-    "userId": 2000,
-    "paymentMethod": "credit card",
-    "recurringPrice": 60,
-    "billingPeriods": 6,
-    "billingInterval": "monthly"
-  },
-  "membershipPeriods": [
-    {
-      "id": 4,
-      "uuid": "06e4a745-80e1-4144-bff7-e377966a2d63",
-      "membership": 4,
-      "start": "2024-07-01T00:00:00.000Z",
-      "end": "2024-08-01T00:00:00.000Z",
-      "state": "issued"
-    },
-    {
-      // and all the other billing periods one under another.
-    }
-  ]
-}
-```
-
-#### GET /memberships
-
-Returns a list of all stored memberships along with their billing periods.
-
-### 🤔 Assumptions
-
-- Mock JSON data simulates persistent storage
-- No external DB used in Task 1
-- IDs are generated using `uuid`
-- Error messages match those from legacy Express app
-
-### ⏱️ Time Estimation – Task 1 (Productive work)
-
-| Phase                      | Time          |
-| :------------------------- | :------------ |
-| Setup & analysis           | ~30 mins      |
-| Backend                    | ~4:30 hrs     |
-| Testing                    | ~30 mins      |
-| <u>**Initial Total**</u>   | **~5:30 hrs** |
-| Frontend                   | 4 hrs         |
-| Github Actions + Bugfixing | 2 hrs         |
-| Testing                    | 30 mins       |
-| <u>**Total**</u>           | **~12 hrs**   |
-
----
-
-### 📌 Final Notes
-
-This project demonstrates:
-
-- Clean **separation of concerns** in a NestJS backend
-- Robust **input validation** and **type safety**
-- Assumptions documented transparently
-- Reasonable time spent on both coding and design
-
-📦 Ready for DB or cloud integration, if expanded.
-
-### 🤔 Decision making
-
-TBA
-
-## ✅ Task 2 – Membership Export Architecture
-
-### 🎯 Goal
-
-The goal of this task is to design a stable and scalable asynchronous process for exporting user membership data to CSV files and delivering them via email upon API request.
-
-TBA
+NOTE: The README files for Task 1 and Task 2 can be found in their respective directories. They are also linked in the table of content.

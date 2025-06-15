@@ -21,7 +21,7 @@ describe('MembershipsController', () => {
     validFrom: new Date('2024-01-01'),
     validUntil: new Date('2024-07-01'),
     userId: 2000,
-    paymentMethod: 'credit_card',
+    paymentMethod: 'credit card',
     recurringPrice: 50,
     billingPeriods: 6,
     billingInterval: 'monthly' as BillingInterval,
@@ -75,7 +75,7 @@ describe('MembershipsController', () => {
       const dto: CreateMembershipDto = {
         name: 'Test Membership',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 6,
       };
@@ -208,7 +208,7 @@ describe('MembershipsController', () => {
       const dto: CreateMembershipDto = {
         name: 'Error Test',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 6,
       };

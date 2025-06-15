@@ -19,7 +19,7 @@ describe('MembershipsService', () => {
       const dto: CreateMembershipDto = {
         name: 'Test Membership',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 6,
       };
@@ -61,7 +61,7 @@ describe('MembershipsService', () => {
       const futureMembershipDto: CreateMembershipDto = {
         name: 'Platinum Plan',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 6,
         validFrom: futureDate.toISOString(),
@@ -77,7 +77,7 @@ describe('MembershipsService', () => {
       const pastMembershipDto: CreateMembershipDto = {
         name: 'Gold Plan',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 6,
         validFrom: pastDate.toISOString(),
@@ -90,7 +90,7 @@ describe('MembershipsService', () => {
       const currentMembershipDto: CreateMembershipDto = {
         name: 'Silver Plan',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'yearly' as BillingInterval,
         billingPeriods: 3,
       };
@@ -103,7 +103,7 @@ describe('MembershipsService', () => {
       const dto: CreateMembershipDto = {
         name: 'Gold Plan',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 8,
       };
@@ -117,7 +117,7 @@ describe('MembershipsService', () => {
       const dto1: CreateMembershipDto = {
         name: 'First Membership',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 6,
       };
@@ -144,7 +144,7 @@ describe('MembershipsService', () => {
       const dto: CreateMembershipDto = {
         name: 'User ID Test',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 6,
       };
@@ -160,7 +160,7 @@ describe('MembershipsService', () => {
       const dto: CreateMembershipDto = {
         name: 'Test Membership for Periods',
         recurringPrice: 50,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'credit card',
         billingInterval: 'monthly' as BillingInterval,
         billingPeriods: 4,
       };
