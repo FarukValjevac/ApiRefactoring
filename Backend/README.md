@@ -297,13 +297,13 @@ These bugs are documented with comments throughout the codebase to ensure future
 | Phase                      | Time          |
 | :------------------------- | :------------ |
 | Setup & Analysis           | ~30 mins      |
-| Backend Implementation     | ~6:30 hrs     |
+| Backend Implementation     | ~8:30 hrs     |
 | Testing                    | ~30 mins      |
-| **Initial Backend Total**  | **~7:30 hrs** |
+| **Initial Backend Total**  | **~9:30 hrs** |
 | Frontend                   | 4 hrs         |
 | GitHub Actions + Bug Fixes | 2 hrs         |
 | Integration Testing        | 30 mins       |
-| **Total Project Time**     | **~14 hrs**   |
+| **Total Project Time**     | **~16 hrs**   |
 
 ### 🤔 Key Assumptions & Decisions
 

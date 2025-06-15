@@ -323,9 +323,9 @@ The solution implements an event-driven, microservices architecture that leverag
 
 | Phase                     | Time          |
 | :------------------------ | :------------ |
-| Planning                  | ~1:30 mins    |
+| Planning                  | ~2:30 mins    |
 | Drawio Implementation     | ~1:00 hrs     |
-| **Initial Backend Total** | **~2:30 hrs** |
+| **Initial Backend Total** | **~3:30 hrs** |
 
 ## 📝 Conclusion
 
