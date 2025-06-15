@@ -1,10 +1,10 @@
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body, ValidationPipe } from '@nestjs/common';
 import { MembershipsService } from './memberships.service';
 import {
   Membership,
   MembershipPeriod,
-  CreateMembershipDto,
 } from './interfaces/memberships.interfaces';
+import { CreateMembershipDto } from './dto/create-membership.dto';
 
 @Controller('memberships') // This maps HTTP requests to /memberships
 export class MembershipsController {
@@ -16,7 +16,7 @@ export class MembershipsController {
    */
   @Post()
   create(
-    @Body() createMembershipDto: CreateMembershipDto, // Extracts the request body and types it as CreateMembershipDto
+    @Body(ValidationPipe) createMembershipDto: CreateMembershipDto, // Extracts the request body and types it as CreateMembershipDto
   ): { membership: Membership; membershipPeriods: MembershipPeriod[] } {
     // Calls the service method to handle the business logic
     return this.membershipsService.createMembership(createMembershipDto);
