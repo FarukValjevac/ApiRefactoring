@@ -2,18 +2,18 @@
 
 ## 📋 Table of Contents
 
-- [Goal](#goal)
-- [Architecture Overview](#architecture-overview)
-- [Key Components](#key-components)
-- [Process Flow](#process-flow)
-- [Architectural Decisions](#architectural-decisions)
-- [Scalability Strategies](#scalability-strategies)
-- [Reliability & Error Handling](#reliability--error-handling)
-- [Key Assumptions](#key-assumptions)
-- [Security Considerations](#security-considerations)
-- [Cost Optimization](#cost-optimization)
-- [Future Enhancements](#future-enhancements)
-- [Conclusion](#conclusion)
+- [Goal](#-goal)
+- [Architecture Overview](#EF%B8%8F-architecture-overview)
+- [Key Components](#-key-components)
+- [Process Flow](#-process-flow)
+- [Architectural Decisions](#-architectural-decisions)
+- [Scalability Strategies](#-scalability-strategies)
+- [Reliability & Error Handling](#EF%B8%8F-reliability--error-handling)
+- [Key Assumptions](#-key-assumptions)
+- [Security Considerations](#-security-considerations)
+- [Cost Optimization](#-cost-optimization)
+- [Time Estimation](#%EF%B8%8F-time-estimation)
+- [Conclusion](#-conclusion)
 
 ## 🎯 Goal
 
