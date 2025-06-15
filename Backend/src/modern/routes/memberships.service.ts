@@ -1,4 +1,3 @@
-// memberships.service.ts
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import initialMembershipsJson from '../../data/memberships.json';
@@ -10,7 +9,11 @@ import {
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { BillingInterval } from './types/memberships-types';
 
-// Raw types that match the JSON input structure
+/**
+ * ASSUMPTION: JSON files contain date strings that need conversion to Date objects
+ * DECISION: Created type-safe conversion functions instead of using 'as any' casting
+ * This ensures type safety while handling the JSON date string limitation
+ */
 type RawMembership = Omit<Membership, 'validFrom' | 'validUntil'> & {
   validFrom: string;
   validUntil: string;
@@ -40,7 +43,11 @@ function convertMembershipPeriodDates(
   }));
 }
 
-// Initialize memberships and membershipPeriods using the conversion functions
+/**
+ * ASSUMPTION: Continuing with in-memory storage to maintain compatibility with legacy system
+ * DECISION: Keep data in module scope to persist across requests (same as legacy behavior)
+ * NOTE: Data will be lost on server restart - this matches legacy behavior
+ */
 const memberships: Membership[] = convertMembershipDates(
   initialMembershipsJson as RawMembership[],
 );
@@ -50,6 +57,11 @@ const membershipPeriods: MembershipPeriod[] = convertMembershipPeriodDates(
 
 @Injectable()
 export class MembershipsService {
+  /**
+   * ASSUMPTION: User authentication is not implemented yet
+   * DECISION: Hardcode userId to 2000 to match legacy behavior
+   * TODO: Replace with proper user authentication when implemented
+   */
   private readonly DEFAULT_USER_ID = 2000;
 
   createMembership(createMembershipDto: CreateMembershipDto): {
@@ -75,6 +87,10 @@ export class MembershipsService {
       state,
     );
 
+    /**
+     * DECISION: Push to in-memory array to maintain legacy behavior
+     * NOTE: In production, this would be a database insert operation
+     */
     memberships.push(newMembership);
 
     const newMembershipPeriods = this.createMembershipPeriods(
@@ -96,6 +112,10 @@ export class MembershipsService {
     membership: Membership;
     periods: MembershipPeriod[];
   }[] {
+    /**
+     * DECISION: Keep the exact response structure from legacy API
+     * The property name 'periods' (not 'membershipPeriods') is intentional for backward compatibility
+     */
     return memberships.map((membership) => ({
       membership,
       periods: membershipPeriods.filter((p) => p.membership === membership.id),
@@ -109,6 +129,10 @@ export class MembershipsService {
   ): Date {
     const validUntil = new Date(validFrom);
 
+    /**
+     * DECISION: Extracted date calculation logic into a separate method
+     * This improves testability and follows single responsibility principle
+     */
     switch (billingInterval) {
       case 'monthly':
         validUntil.setMonth(validFrom.getMonth() + billingPeriods);
@@ -130,6 +154,12 @@ export class MembershipsService {
   ): Membership['state'] {
     const now = new Date();
 
+    /**
+     * BUSINESS RULE: Membership state determination
+     * - pending: starts in the future
+     * - expired: ended in the past
+     * - active: current date is between start and end
+     */
     if (validFrom > now) {
       return 'pending';
     }
@@ -176,11 +206,20 @@ export class MembershipsService {
       const periodEnd = this.calculatePeriodEnd(periodStart, billingInterval);
 
       const period: MembershipPeriod = {
+        /**
+         * BUG FIX: Legacy code used simple index for period IDs which could cause conflicts
+         * DECISION: Calculate ID based on max existing ID to prevent duplicates
+         */
         id: maxExistingPeriodId + periods.length + 1,
         uuid: uuidv4(),
         membership: membership.id,
         start: new Date(periodStart),
         end: periodEnd,
+        /**
+         * ASSUMPTION: Period state should be 'issued' based on JSON data
+         * NOTE: Legacy code used 'planned' but actual data shows 'issued'
+         * DECISION: Use 'issued' to match existing data structure
+         */
         state: 'issued',
       };
 
@@ -213,6 +252,10 @@ export class MembershipsService {
   }
 
   private getNextMembershipId(): number {
+    /**
+     * BUG FIX: Legacy used array.length + 1 which fails if items are deleted
+     * DECISION: Use max ID + 1 to ensure unique IDs
+     */
     return memberships.length > 0
       ? Math.max(...memberships.map((m) => m.id)) + 1
       : 1;
