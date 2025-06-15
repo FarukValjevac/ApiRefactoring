@@ -1,18 +1,10 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  ValidationPipe,
-  UseFilters,
-} from '@nestjs/common';
+import { Controller, Post, Get, Body, ValidationPipe } from '@nestjs/common';
 import { MembershipsService } from './memberships.service';
 import {
   Membership,
   MembershipPeriod,
 } from './interfaces/memberships.interfaces';
 import { CreateMembershipDto } from './dto/createMembership.dto';
-import { LegacyValidationExceptionFilter } from './filters/legacyValidationException.filter';
 
 /**
  * DECISION: Use NestJS Controllers for declarative and type-safe route handling.
@@ -20,7 +12,6 @@ import { LegacyValidationExceptionFilter } from './filters/legacyValidationExcep
  * in this controller, ensuring legacy-compatible error responses.
  */
 @Controller('memberships')
-@UseFilters(new LegacyValidationExceptionFilter())
 export class MembershipsController {
   constructor(private readonly membershipsService: MembershipsService) {}
 
