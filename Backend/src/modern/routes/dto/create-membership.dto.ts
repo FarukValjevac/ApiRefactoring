@@ -138,7 +138,7 @@ export class CreateMembershipDto {
    * NOTE: In legacy code, invalid payment method would likely fail silently
    * or be caught elsewhere. Adding validation for completeness.
    */
-  @IsEnum(['cash', 'credit_card', 'bank_transfer'], {
+  @IsEnum(['cash', 'credit card'], {
     message: 'invalidPaymentMethod',
   })
   paymentMethod: string;
