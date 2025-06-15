@@ -5,7 +5,6 @@
 - [Setup](#setup)
 - [Task 1 – Backend Modernization](Backend/README.md)
 - [Task 2 – Architecture Overview](Arch/README.md)
-- [Bonus Frontend](Frontend/README.md)
 
 ## Setup
 
