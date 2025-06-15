@@ -6,7 +6,7 @@
  */
 export interface MembershipItem {
   membership: {
-    id: string; 
+    id: string; // The UUID of the membership.
     name: string;
     recurringPrice: number;
     validFrom: string; 
