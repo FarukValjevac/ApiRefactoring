@@ -7,6 +7,7 @@
 - [API Endpoints](#-api-endpoints)
 - [Architecture Decisions](#%EF%B8%8F-architecture-decisions)
 - [Implementation Details](#-implementation-details)
+- [Intentionally Preserved Legacy Bugs](#-intentionally-preserved-legacy-bugs)
 - [Time Estimation](#%EF%B8%8F-time-estimation)
 - [Key Assumptions](#-key-assumptions--decisions)
 - [Final Notes](#-final-notes)
@@ -212,6 +213,84 @@ This single decorator replaces many lines of manual validation while providing:
 - In-memory data loss on restart
 - Hardcoded `userId: 2000`
 - Exact response structures
+
+### 🐛 Intentionally Preserved Legacy Bugs
+
+To maintain exactly the same error messages as in the legacy code there bugs are **intentionally preserved** in the modernized codebase:
+
+#### **1. Monthly Billing Periods < 6 Validation Never Executes**
+
+- **Legacy Bug**: Typo in validation code uses `req.billingPeriods` instead of `req.body.billingPeriods`
+- **Effect**: Monthly memberships can be created with 1-5 billing periods without error
+- **Preserved In**: `BillingPeriodsRangeConstraint` - only validates upper bound (≤12)
+
+```javascript
+// Legacy code with bug:
+if (req.billingPeriods < 6) {
+  // Missing .body - this check never runs!
+  return res.status(400).json({ message: 'billingPeriodsLessThan6Months' });
+}
+```
+
+#### **2. Incorrect Error Message for Yearly Billing Periods 4-10**
+
+- **Legacy Bug**: Returns "billingPeriodsLessThan3Years" for values 4-10 (should be "moreThan3Years")
+- **Effect**: Users see semantically incorrect error message
+- **Preserved In**: `BillingPeriodsRangeConstraint.defaultMessage()`
+
+```javascript
+// Legacy bug: says "less than" when value is actually "more than"
+if (req.body.billingPeriods > 3) {
+  if (req.body.billingPeriods > 10) {
+    return { message: 'billingPeriodsMoreThan10Years' };
+  } else {
+    return { message: 'billingPeriodsLessThan3Years' }; // Wrong message!
+  }
+}
+```
+
+#### **3. Weekly Billing Interval Treated as Invalid**
+
+- **Legacy Bug**: 'weekly' is valid for date calculations but validation else clause rejects it
+- **Effect**: Cannot create weekly memberships via API despite backend support
+- **Preserved In**: `BillingIntervalElseClauseConstraint` - treats 'weekly' as invalid
+
+#### **4. Misleading Error for Invalid Billing Intervals**
+
+- **Legacy Bug**: Returns "invalidBillingPeriods" instead of "invalidBillingInterval"
+- **Effect**: Confusing error message when billing interval is the actual problem
+- **Preserved In**: All billing interval validators return "invalidBillingPeriods"
+
+#### **5. No Payment Method Validation**
+
+- **Legacy Bug**: `paymentMethod` used in cash validation but never validated itself
+- **Effect**: Any payment method value accepted (unless it's 'cash' with price > 100)
+- **Preserved In**: No validation decorator on `paymentMethod` field
+
+#### **6. Missing Field Validation Gaps**
+
+- **Legacy Bug**: No explicit validation for required fields like `billingInterval` and `billingPeriods`
+- **Effect**: Missing fields trigger generic else clause instead of specific errors
+- **Preserved In**: Fields marked as required in DTO but rely on custom validators for errors
+
+#### **Implementation Example**
+
+```typescript
+// Example of preserved bug in custom validator
+@ValidatorConstraint({ name: 'billingPeriodsRange', async: false })
+export class BillingPeriodsRangeConstraint {
+  defaultMessage(args: ValidationArguments) {
+    // ...
+    case 'yearly':
+      if (billingPeriods > 3) {
+        // LEGACY BUG PRESERVED: Wrong message for 4-10 years
+        return 'billingPeriodsLessThan3Years';
+      }
+  }
+}
+```
+
+These bugs are documented with comments throughout the codebase to ensure future developers understand they are intentional, not oversights.
 
 ### ⏱️ Time Estimation
 
