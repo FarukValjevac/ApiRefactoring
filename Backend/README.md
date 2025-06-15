@@ -1,5 +1,15 @@
 ## ✅ Task 1 – Backend Modernization
 
+## 📋 Table of Contents
+
+- [Goal](#goal)
+- [Technologies Used](#technologies-used)
+- [API Endpoints](#api-endpoints)
+- [Architecture Decisions](#architecture-decisions)
+- [Implementation Details](#implementation-details)
+- [Time Estimation](#time-estimation)
+- [Final Notes](#final-notes)
+
 ### 🎯 Goal
 
 Refactor legacy Express endpoints `/legacy/memberships` (GET & POST) into a modern, maintainable NestJS backend using TypeScript, with:

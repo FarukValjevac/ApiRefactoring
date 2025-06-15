@@ -1,5 +1,20 @@
 # Task 2: Membership Export Architecture
 
+## 📋 Table of Contents
+
+- [Goal](#goal)
+- [Architecture Overview](#architecture-overview)
+- [Key Components](#key-components)
+- [Process Flow](#process-flow)
+- [Architectural Decisions](#architectural-decisions)
+- [Scalability Strategies](#scalability-strategies)
+- [Reliability & Error Handling](#reliability--error-handling)
+- [Key Assumptions](#key-assumptions)
+- [Security Considerations](#security-considerations)
+- [Cost Optimization](#cost-optimization)
+- [Future Enhancements](#future-enhancements)
+- [Conclusion](#conclusion)
+
 ## 🎯 Goal
 
 Design a stable and scalable asynchronous architecture for exporting user membership data to CSV files and delivering them via email. The system must handle time-intensive export operations (several seconds) without blocking the API, ensuring optimal user experience and system reliability.
