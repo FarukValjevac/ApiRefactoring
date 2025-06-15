@@ -2,13 +2,14 @@
 
 ## 📋 Table of Contents
 
-- [Goal](#goal)
-- [Technologies Used](#technologies-used)
-- [API Endpoints](#api-endpoints)
-- [Architecture Decisions](#architecture-decisions)
-- [Implementation Details](#implementation-details)
-- [Time Estimation](#time-estimation)
-- [Final Notes](#final-notes)
+- [Goal](#-goal)
+- [Technologies Used](#%EF%B8%8F-technologies-used)
+- [API Endpoints](#-api-endpoints)
+- [Architecture Decisions](#%EF%B8%8F-architecture-decisions)
+- [Implementation Details](#-implementation-details)
+- [Time Estimation](#%EF%B8%8F-time-estimation)
+- [Key Assumptions](#-key-assumptions--decisions)
+- [Final Notes](#-final-notes)
 
 ### 🎯 Goal
 
@@ -225,16 +226,6 @@ This single decorator replaces many lines of manual validation while providing:
 | Integration Testing        | 30 mins       |
 | **Total Project Time**     | **~14 hrs**   |
 
-## 📦 Final Notes
-
-This modernization demonstrates:
-
-- **Clean Architecture**: Clear separation of concerns with NestJS patterns
-- **Type Safety**: Full TypeScript implementation with proper interfaces
-- **Backward Compatibility**: 100% API compatibility with legacy endpoints
-- **Maintainability**: Declarative validation and modular structure
-- **Future-Ready**: Architecture supports easy database integration
-
 ### 🤔 Key Assumptions & Decisions
 
 #### **Assumptions**
@@ -254,3 +245,13 @@ This modernization demonstrates:
 5. **Type Safety**: Added comprehensive TypeScript interfaces while handling JSON date limitations
 
 The refactored codebase maintains all legacy behaviors while providing a solid foundation for future enhancements.
+
+## 📦 Final Notes
+
+This modernization demonstrates:
+
+- **Clean Architecture**: Clear separation of concerns with NestJS patterns
+- **Type Safety**: Full TypeScript implementation with proper interfaces
+- **Backward Compatibility**: 100% API compatibility with legacy endpoints
+- **Maintainability**: Declarative validation and modular structure
+- **Future-Ready**: Architecture supports easy database integration
