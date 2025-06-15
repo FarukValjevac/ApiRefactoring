@@ -15,12 +15,9 @@ import { CreateMembershipDto } from './dto/createMembership.dto';
 import { LegacyValidationExceptionFilter } from './filters/legacyValidationException.filter';
 
 /**
- * DECISION: Use NestJS Controller decorator for cleaner route handling
- * This replaces Express router.get/post with decorators
- * Benefits: Better type safety, automatic dependency injection, cleaner code
- *
- * DECISION: Apply LegacyValidationExceptionFilter to maintain exact error format
- * This ensures our responses match the legacy API format: { "message": "errorCode" }
+ * DECISION: Use NestJS Controllers for declarative and type-safe route handling.
+ * The `@UseFilters` decorator applies our custom exception filter to all endpoints
+ * in this controller, ensuring legacy-compatible error responses.
  */
 @Controller('memberships')
 @UseFilters(new LegacyValidationExceptionFilter())
@@ -28,16 +25,11 @@ export class MembershipsController {
   constructor(private readonly membershipsService: MembershipsService) {}
 
   /**
-   * Handles POST requests to /memberships to create a new membership.
+   * Handles POST requests to create a new membership.
    *
-   * DECISION: Apply ValidationPipe directly to the @Body parameter
-   * This provides automatic validation before the method executes:
-   * - Validates all constraints defined in CreateMembershipDto
-   * - Transforms plain JSON to typed DTO instance
-   * - Returns 400 Bad Request if validation fails
-   *
-   * The LegacyValidationExceptionFilter transforms validation errors
-   * to match the legacy format: { "message": "errorCode" }
+   * DECISION: Use the built-in `ValidationPipe` on the `@Body`.
+   * This pipe automatically validates the incoming payload against the `CreateMembershipDto`,
+   * transforming it into a typed class instance and triggering our custom validators.
    */
   @Post()
   create(@Body(ValidationPipe) createMembershipDto: CreateMembershipDto): {
@@ -45,23 +37,21 @@ export class MembershipsController {
     membershipPeriods: MembershipPeriod[];
   } {
     /**
-     * DECISION: Controller only handles HTTP concerns, delegates business logic to service
-     * This separation allows for easier testing and potential reuse of business logic
+     * DECISION: The controller's role is limited to handling the HTTP request/response cycle.
+     * All business logic is delegated to the `MembershipsService` for better separation of concerns.
      */
     return this.membershipsService.createMembership(createMembershipDto);
   }
 
   /**
-   * Handles GET requests to /memberships to list all memberships.
+   * Handles GET requests to list all memberships.
    *
-   * ASSUMPTION: No pagination needed at this time (matching legacy behavior)
-   * TODO: Add pagination when dataset grows larger
-   *
-   * DECISION: Return exact same response structure as legacy API
-   * Note the property name 'periods' (not 'membershipPeriods') for backward compatibility
+   * ASSUMPTION: Pagination is not required, matching the legacy endpoint's behavior.
+   * TODO: Implement pagination when the data set is expected to grow.
    */
   @Get()
   findAll(): { membership: Membership; periods: MembershipPeriod[] }[] {
+    // The response structure is intentionally kept identical to the legacy API.
     return this.membershipsService.getAllMemberships();
   }
 }

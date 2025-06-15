@@ -7,25 +7,24 @@ import {
 import { Response } from 'express';
 
 /**
- * DECISION: Create custom exception filter to match legacy error response format
- * Legacy API returns: { "message": "errorCode" } with status 400
- * NestJS default returns: { "statusCode": 400, "message": [...], "error": "Bad Request" }
- *
- * This filter transforms NestJS validation errors to match legacy format exactly
- * and respects the priority order of the legacy validation checks
+ * DECISION: Create a custom exception filter to transform NestJS's default
+ * validation error response into the precise format used by the legacy API.
+ * Legacy Format: { "message": "errorCode" }
+ * NestJS Default: { "statusCode": 400, "message": [...], "error": "Bad Request" }
+ * This filter also enforces the validation priority of the original implementation.
  */
 @Catch(BadRequestException)
 export class LegacyValidationExceptionFilter implements ExceptionFilter {
   /**
-   * Priority order of legacy error codes (based on if-else chain in legacy code)
-   * Earlier items in the array have higher priority
+   * Defines the priority of error messages, mirroring the if-else-if statement
+   * order in the legacy `POST /legacy/memberships` endpoint.
    */
   private readonly errorPriority = [
     'missingMandatoryFields',
     'negativeRecurringPrice',
     'cashPriceBelow100',
     'billingPeriodsMoreThan12Months',
-    'billingPeriodsLessThan6Months',
+    'billingPeriodsLessThan6Months', // Preserved for completeness, though unreachable due to a legacy bug.
     'billingPeriodsMoreThan10Years',
     'billingPeriodsLessThan3Years',
     'invalidBillingPeriods',
@@ -37,63 +36,33 @@ export class LegacyValidationExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
-    /**
-     * Handle the different types of exception responses
-     * getResponse() can return string | object
-     */
     if (typeof exceptionResponse === 'string') {
-      // If it's a string, return it in legacy format
       return response.status(status).json({
         message: exceptionResponse,
       });
     }
 
-    /**
-     * Type guard to check if the response has a message property
-     * and if it's an array (indicating validation errors)
-     */
     if (
       typeof exceptionResponse === 'object' &&
       exceptionResponse !== null &&
-      'message' in exceptionResponse
+      'message' in exceptionResponse &&
+      Array.isArray((exceptionResponse as { message: unknown }).message)
     ) {
-      const responseObj = exceptionResponse as { message: unknown };
-
-      if (
-        Array.isArray(responseObj.message) &&
-        responseObj.message.length > 0
-      ) {
-        /**
-         * DECISION: Return the highest priority error code found
-         * This matches the legacy if-else chain behavior where the first
-         * matching condition determines the error response
-         */
-        const legacyErrorCode = this.getHighestPriorityError(
-          responseObj.message as string[],
-        );
-
-        /**
-         * Return legacy format with just the error code
-         * Status remains 400 as in legacy implementation
-         */
-        return response.status(status).json({
-          message: legacyErrorCode,
-        });
-      }
+      const messages = (exceptionResponse as { message: string[] }).message;
 
       /**
-       * If message exists but is not an array, return it as is
+       * DECISION: Select the single highest-priority error from all validation failures.
+       * This emulates the behavior of a legacy if-else chain, where execution stops
+       * and returns at the first validation rule that fails.
        */
-      if (typeof responseObj.message === 'string') {
-        return response.status(status).json({
-          message: responseObj.message,
-        });
-      }
+      const legacyErrorCode = this.getHighestPriorityError(messages);
+
+      return response.status(status).json({
+        message: legacyErrorCode,
+      });
     }
 
-    /**
-     * Default fallback for unexpected formats
-     */
+    // Fallback for any other unexpected error format.
     return response.status(status).json({
       message: 'Bad Request',
     });
@@ -101,18 +70,15 @@ export class LegacyValidationExceptionFilter implements ExceptionFilter {
 
   /**
    * Finds the highest priority error from the validation messages
-   * based on the legacy code's if-else chain order
+   * based on the legacy code's if-else chain order.
    */
   private getHighestPriorityError(messages: string[]): string {
-    // Check each error in priority order
     for (const errorCode of this.errorPriority) {
       if (messages.some((msg) => msg.includes(errorCode))) {
         return errorCode;
       }
     }
-
-    // If no known error code found, return the first message
-    // This shouldn't happen with our custom validators
+    // This fallback should ideally not be reached if custom validators are correctly configured.
     return messages[0];
   }
 }

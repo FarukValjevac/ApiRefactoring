@@ -10,9 +10,9 @@ import { CreateMembershipDto } from './dto/createMembership.dto';
 import { BillingInterval } from './types/memberships.types';
 
 /**
- * ASSUMPTION: JSON files contain date strings that need conversion to Date objects
- * DECISION: Created type-safe conversion functions instead of using 'as any' casting
- * This ensures type safety while handling the JSON date string limitation
+ * ASSUMPTION: The source JSON files store dates as ISO strings.
+ * DECISION: Create type-safe utility functions to parse these strings into Date objects
+ * on application startup, preventing runtime errors and `any` casting.
  */
 type RawMembership = Omit<Membership, 'validFrom' | 'validUntil'> & {
   validFrom: string;
@@ -44,9 +44,10 @@ function convertMembershipPeriodDates(
 }
 
 /**
- * ASSUMPTION: Continuing with in-memory storage to maintain compatibility with legacy system
- * DECISION: Keep data in module scope to persist across requests (same as legacy behavior)
- * NOTE: Data will be lost on server restart - this matches legacy behavior
+ * ASSUMPTION: We are maintaining the legacy system's in-memory data storage.
+ * DECISION: Data is stored in module-scoped constants to mimic the simple persistence
+ * of the original implementation.
+ * NOTE: This means all data is reset upon server restart, which is the expected behavior.
  */
 const memberships: Membership[] = convertMembershipDates(
   initialMembershipsJson as RawMembership[],
@@ -58,9 +59,9 @@ const membershipPeriods: MembershipPeriod[] = convertMembershipPeriodDates(
 @Injectable()
 export class MembershipsService {
   /**
-   * ASSUMPTION: User authentication is not implemented yet
-   * DECISION: Hardcode userId to 2000 to match legacy behavior
-   * TODO: Replace with proper user authentication when implemented
+   * ASSUMPTION: User authentication is outside the current scope.
+   * DECISION: Hardcode `userId` to 2000 to match legacy behavior.
+   * TODO: Replace this with a proper user context from an authentication service.
    */
   private readonly DEFAULT_USER_ID = 2000;
 
@@ -87,10 +88,7 @@ export class MembershipsService {
       state,
     );
 
-    /**
-     * DECISION: Push to in-memory array to maintain legacy behavior
-     * NOTE: In production, this would be a database insert operation
-     */
+    // Persist to the in-memory array to match legacy behavior.
     memberships.push(newMembership);
 
     const newMembershipPeriods = this.createMembershipPeriods(
@@ -113,8 +111,8 @@ export class MembershipsService {
     periods: MembershipPeriod[];
   }[] {
     /**
-     * DECISION: Keep the exact response structure from legacy API
-     * The property name 'periods' (not 'membershipPeriods') is intentional for backward compatibility
+     * DECISION: The response structure, including the property name 'periods',
+     * is kept identical to the legacy API for backward compatibility.
      */
     return memberships.map((membership) => ({
       membership,
@@ -128,23 +126,18 @@ export class MembershipsService {
     billingPeriods: number,
   ): Date {
     const validUntil = new Date(validFrom);
-
-    /**
-     * DECISION: Extracted date calculation logic into a separate method
-     * This improves testability and follows single responsibility principle
-     */
+    // This logic is extracted for clarity and testability.
     switch (billingInterval) {
       case 'monthly':
-        validUntil.setMonth(validFrom.getMonth() + billingPeriods);
+        validUntil.setMonth(validUntil.getMonth() + billingPeriods);
         break;
       case 'yearly':
-        validUntil.setMonth(validFrom.getMonth() + billingPeriods * 12);
+        validUntil.setMonth(validUntil.getMonth() + billingPeriods * 12);
         break;
       case 'weekly':
-        validUntil.setDate(validFrom.getDate() + billingPeriods * 7);
+        validUntil.setDate(validUntil.getDate() + billingPeriods * 7);
         break;
     }
-
     return validUntil;
   }
 
@@ -153,19 +146,14 @@ export class MembershipsService {
     validUntil: Date,
   ): Membership['state'] {
     const now = new Date();
-
     /**
-     * BUSINESS RULE: Membership state determination
-     * - pending: starts in the future
-     * - expired: ended in the past
-     * - active: current date is between start and end
+     * BUSINESS RULE: Membership state is determined by the current time.
+     * - pending: The membership starts in the future.
+     * - expired: The membership ended in the past.
+     * - active:  The current date is within the membership's validity period.
      */
-    if (validFrom > now) {
-      return 'pending';
-    }
-    if (validUntil < now) {
-      return 'expired';
-    }
+    if (validFrom > now) return 'pending';
+    if (validUntil < now) return 'expired';
     return 'active';
   }
 
@@ -175,15 +163,13 @@ export class MembershipsService {
     validUntil: Date,
     state: Membership['state'],
   ): Membership {
-    const nextMembershipId = this.getNextMembershipId();
-
     return {
-      id: nextMembershipId,
+      id: this.getNextMembershipId(),
       uuid: uuidv4(),
       name: dto.name,
-      state: state,
-      validFrom: validFrom,
-      validUntil: validUntil,
+      state,
+      validFrom,
+      validUntil,
       userId: this.DEFAULT_USER_ID,
       paymentMethod: dto.paymentMethod,
       recurringPrice: dto.recurringPrice,
@@ -195,7 +181,7 @@ export class MembershipsService {
   private createMembershipPeriods(
     membership: Membership,
     validFrom: Date,
-    billingInterval: 'monthly' | 'yearly' | 'weekly',
+    billingInterval: BillingInterval,
     billingPeriods: number,
   ): MembershipPeriod[] {
     const periods: MembershipPeriod[] = [];
@@ -204,57 +190,55 @@ export class MembershipsService {
 
     for (let i = 0; i < billingPeriods; i++) {
       const periodEnd = this.calculatePeriodEnd(periodStart, billingInterval);
-
       const period: MembershipPeriod = {
         /**
-         * BUG FIX: Legacy code used simple index for period IDs which could cause conflicts
-         * DECISION: Calculate ID based on max existing ID to prevent duplicates
+         * BUG FIX: The legacy code used `i + 1` for the period ID, which is not safe
+         * and can lead to ID collisions.
+         * DECISION: Generate new IDs by incrementing from the highest existing ID
+         * across all memberships to guarantee uniqueness.
          */
-        id: maxExistingPeriodId + periods.length + 1,
+        id: maxExistingPeriodId + i + 1,
         uuid: uuidv4(),
         membership: membership.id,
         start: new Date(periodStart),
         end: periodEnd,
         /**
-         * ASSUMPTION: Period state should be 'issued' based on JSON data
-         * NOTE: Legacy code used 'planned' but actual data shows 'issued'
-         * DECISION: Use 'issued' to match existing data structure
+         * ASSUMPTION: The state for newly created periods should be 'planned'.
+         * NOTE: The legacy code set this to 'planned', which is what we will follow.
+         * The existing JSON data might show other states like 'issued' for historical periods.
          */
-        state: 'issued',
+        state: 'planned',
       };
-
       periods.push(period);
       periodStart = new Date(periodEnd);
     }
-
     return periods;
   }
 
   private calculatePeriodEnd(
     periodStart: Date,
-    billingInterval: 'monthly' | 'yearly' | 'weekly',
+    billingInterval: BillingInterval,
   ): Date {
     const periodEnd = new Date(periodStart);
-
     switch (billingInterval) {
       case 'monthly':
-        periodEnd.setMonth(periodStart.getMonth() + 1);
+        periodEnd.setMonth(periodEnd.getMonth() + 1);
         break;
       case 'yearly':
-        periodEnd.setMonth(periodStart.getMonth() + 12);
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
         break;
       case 'weekly':
-        periodEnd.setDate(periodStart.getDate() + 7);
+        periodEnd.setDate(periodEnd.getDate() + 7);
         break;
     }
-
     return periodEnd;
   }
 
   private getNextMembershipId(): number {
     /**
-     * BUG FIX: Legacy used array.length + 1 which fails if items are deleted
-     * DECISION: Use max ID + 1 to ensure unique IDs
+     * BUG FIX: The legacy code used `memberships.length + 1` for new IDs, which is
+     * unsafe and fails if memberships are ever deleted.
+     * DECISION: Use `Math.max` on existing IDs to ensure the next ID is always unique.
      */
     return memberships.length > 0
       ? Math.max(...memberships.map((m) => m.id)) + 1
