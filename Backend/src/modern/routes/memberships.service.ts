@@ -6,8 +6,8 @@ import {
   Membership,
   MembershipPeriod,
 } from './interfaces/memberships.interfaces';
-import { CreateMembershipDto } from './dto/create-membership.dto';
-import { BillingInterval } from './types/memberships-types';
+import { CreateMembershipDto } from './dto/createMembership.dto';
+import { BillingInterval } from './types/memberships.types';
 
 /**
  * ASSUMPTION: JSON files contain date strings that need conversion to Date objects

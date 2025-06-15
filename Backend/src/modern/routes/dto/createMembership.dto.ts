@@ -12,7 +12,7 @@ import {
   ValidatorConstraintInterface,
   IsNotEmpty,
 } from 'class-validator';
-import { BillingInterval } from '../types/memberships-types';
+import { BillingInterval } from '../types/memberships.types';
 
 /**
  * DECISION: Use custom validators with legacy error messages

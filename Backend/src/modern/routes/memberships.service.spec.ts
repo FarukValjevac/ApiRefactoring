@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MembershipsService } from './memberships.service';
-import { CreateMembershipDto } from './dto/create-membership.dto';
-import { BillingInterval } from './types/memberships-types';
+import { CreateMembershipDto } from './dto/createMembership.dto';
+import { BillingInterval } from './types/memberships.types';
 
 describe('MembershipsService', () => {
   let service: MembershipsService;

@@ -1,4 +1,4 @@
-import { BillingInterval } from '../types/memberships-types';
+import { BillingInterval } from '../types/memberships.types';
 
 export interface Membership {
   id: number;

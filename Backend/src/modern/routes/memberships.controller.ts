@@ -11,8 +11,8 @@ import {
   Membership,
   MembershipPeriod,
 } from './interfaces/memberships.interfaces';
-import { CreateMembershipDto } from './dto/create-membership.dto';
-import { LegacyValidationExceptionFilter } from './filters/legacy-validation-exception.filter';
+import { CreateMembershipDto } from './dto/createMembership.dto';
+import { LegacyValidationExceptionFilter } from './filters/legacyValidationException.filter';
 
 /**
  * DECISION: Use NestJS Controller decorator for cleaner route handling
