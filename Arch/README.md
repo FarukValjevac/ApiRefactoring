@@ -101,6 +101,25 @@ The solution implements an event-driven, microservices architecture that leverag
   - Delivery tracking and retry logic
   - Provider abstraction for flexibility
 
+### 7. **Monitoring & Observability (CloudWatch)**
+
+- **Purpose**: Comprehensive system monitoring and alerting
+- **Key Metrics**:
+  - **Queue Metrics**: BullMQ depth, processing times, failure rates
+  - **Service Health**: CPU/memory usage, error rates, latency
+  - **Business KPIs**: Exports per hour, average file sizes, user patterns
+  - **Kafka Metrics**: Consumer lag, throughput, partition health
+- **Features**:
+  - Real-time dashboards
+  - Custom alarms for anomaly detection
+  - Log aggregation and analysis
+  - Distributed tracing for request flow
+- **Alerting**:
+  - Queue backup warnings
+  - High failure rate notifications
+  - Service degradation alerts
+  - SLA breach notifications
+
 ## 📊 Process Flow
 
 1. **Export Request**
@@ -116,17 +135,20 @@ The solution implements an event-driven, microservices architecture that leverag
    - Queries read replica for user membership data
    - Generates CSV with proper formatting
    - Uploads encrypted file to S3
+   - CloudWatch tracks processing metrics
 
 3. **Event Publishing**
 
    - Export service publishes "ExportCompleted" event to Kafka
    - Event contains: userId, s3Key, metadata
+   - CloudWatch monitors Kafka topic health
 
 4. **Email Notification**
    - Email service consumes event from Kafka
    - Generates pre-signed S3 URL (7-day expiry)
    - Sends formatted email with download link
    - Handles delivery failures with retry logic
+   - CloudWatch tracks email delivery metrics
 
 ## 🔧 Architectural Decisions
 
@@ -216,10 +238,22 @@ The solution implements an event-driven, microservices architecture that leverag
 
 ### Monitoring & Alerts
 
-- Queue depth and processing times
-- Success/failure rates
-- Service health metrics
-- Business KPIs (exports per hour)
+- **CloudWatch Integration**:
+  - Custom metrics for all services
+  - Log groups for centralized logging
+  - Dashboards for real-time visibility
+  - Alarms with SNS notifications
+- **Key Metrics Tracked**:
+  - Queue depth and processing times
+  - Success/failure rates per service
+  - API response times and error rates
+  - S3 upload performance
+  - Email delivery success rates
+- **Alerting Thresholds**:
+  - Queue depth > 1000 jobs
+  - Failure rate > 5%
+  - Processing time > 5 minutes
+  - Service availability < 99.9%
 
 ## 📏 Key Assumptions
 
