@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -97,6 +97,33 @@ export class MembershipsService {
         this.toMembershipPeriodInterface(p),
       ),
     }));
+  }
+
+  /**
+   * Deletes a membership by ID.
+   * DECISION: Perform a hard delete as requested. The database's ON DELETE CASCADE
+   * constraint will automatically remove all associated membership_periods.
+   *
+   * @param id - The ID of the membership to delete
+   * @returns Success message
+   * @throws NotFoundException if the membership doesn't exist
+   */
+  async deleteMembership(id: number): Promise<{ message: string }> {
+    // First, check if the membership exists
+    const membership = await this.membershipRepository.findOne({
+      where: { id },
+    });
+
+    if (!membership) {
+      throw new NotFoundException(`Membership with ID ${id} not found`);
+    }
+
+    // Perform the deletion
+    await this.membershipRepository.remove(membership);
+
+    return {
+      message: `Membership with ID ${id} has been successfully deleted`,
+    };
   }
 
   private calculateValidUntil(

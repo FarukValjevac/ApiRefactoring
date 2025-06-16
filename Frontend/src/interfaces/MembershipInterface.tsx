@@ -6,12 +6,24 @@
  */
 export interface MembershipItem {
   membership: {
-    id: string; // The UUID of the membership.
+    id: number; // The numeric ID of the membership (not UUID).
+    uuid: string; // The UUID of the membership.
     name: string;
     recurringPrice: number;
     validFrom: string; 
     validUntil: string; 
     billingInterval: string;
     billingPeriods: number;
+    state: string;
+    paymentMethod: string;
+    userId: number;
   };
+  periods: Array<{
+    id: number;
+    uuid: string;
+    membership: number;
+    start: string;
+    end: string;
+    state: string;
+  }>;
 }

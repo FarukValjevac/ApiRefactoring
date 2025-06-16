@@ -23,6 +23,8 @@ const MembershipList = forwardRef<MembershipListRef>((_, ref) => {
   const [error, setError] = useState<string | null>(null);
   // State to control the visibility of the list, allowing it to be toggled.
   const [isListVisible, setIsListVisible] = useState(false);
+  // State to track which membership is being deleted (for loading state)
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   /**
    * Fetches the list of memberships from the backend API.
@@ -43,6 +45,44 @@ const MembershipList = forwardRef<MembershipListRef>((_, ref) => {
       setError(err instanceof Error ? err.message : 'An unknown error occurred.');
     } finally {
       setLoading(false); // Ensure loading is set to false in all cases.
+    }
+  };
+
+  /**
+   * Deletes a membership after user confirmation.
+   * DECISION: Use window.confirm for simplicity as requested. Shows a loading state
+   * on the specific item being deleted to prevent multiple clicks and provide feedback.
+   * 
+   * @param id - The ID of the membership to delete
+   * @param name - The name of the membership (for the confirmation message)
+   */
+  const handleDelete = async (id: string, name: string) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`);
+    
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingId(id);
+    setError(null);
+
+    try {
+      const response = await fetch(`http://localhost:3000/memberships/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to delete membership.');
+      }
+
+      // Successfully deleted - refresh the list
+      await fetchMemberships();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete membership.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -95,6 +135,16 @@ const MembershipList = forwardRef<MembershipListRef>((_, ref) => {
               <p><strong>Valid Until:</strong> {new Date(item.membership.validUntil).toLocaleDateString()}</p>
               <p><strong>Billing Interval:</strong> {item.membership.billingInterval}</p>
               <p><strong>Billing Periods:</strong> {item.membership.billingPeriods}</p>
+              
+              {/* Delete button - only visible on hover (CSS handles visibility) */}
+              <button
+                className="delete-button"
+                onClick={() => handleDelete(item.membership.id, item.membership.name)}
+                disabled={deletingId === item.membership.id}
+                aria-label={`Delete ${item.membership.name}`}
+              >
+                {deletingId === item.membership.id ? 'Deleting...' : 'Delete'}
+              </button>
             </div>
           ))}
         </div>

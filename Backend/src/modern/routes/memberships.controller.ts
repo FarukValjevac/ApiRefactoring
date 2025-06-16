@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Body, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  ValidationPipe,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { MembershipsService } from './memberships.service';
 import {
   Membership,
@@ -25,5 +34,12 @@ export class MembershipsController {
     { membership: Membership; periods: MembershipPeriod[] }[]
   > {
     return this.membershipsService.getAllMemberships();
+  }
+
+  @Delete(':id')
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ message: string }> {
+    return this.membershipsService.deleteMembership(id);
   }
 }

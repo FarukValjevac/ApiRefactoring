@@ -127,7 +127,10 @@ button:hover {
   margin-top: 1.5rem;
 }
 
-/* Individual card styling for each membership item in the list. */
+/* Individual card styling for each membership item in the list.
+   DECISION: Add position: relative to enable absolute positioning of the delete button.
+   This allows the button to be positioned within the card's boundaries.
+*/
 .membership-item-card {
   border: 1px solid #eee;
   border-radius: 8px;
@@ -136,6 +139,13 @@ button:hover {
   background-color: #fff;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
   margin-bottom: 1rem;
+  position: relative;
+  transition: box-shadow 0.2s ease;
+}
+
+/* ENHANCEMENT: Add a subtle hover effect to the card to indicate interactivity. */
+.membership-item-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .membership-item-card:last-child {
@@ -151,6 +161,44 @@ button:hover {
   margin: 0.5rem 0;
   color: #555;
   font-size: 0.95rem;
+}
+
+/* Delete button styling.
+   DECISION: Position the button absolutely in the top-right corner of the card.
+   Use opacity to hide it by default and show on card hover for a clean UI.
+   The red color scheme clearly indicates a destructive action.
+*/
+.delete-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: auto;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+/* Show the delete button when hovering over the card. */
+.membership-item-card:hover .delete-button {
+  opacity: 1;
+}
+
+/* Hover state for the delete button itself. */
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Disabled state for the delete button (while deletion is in progress). */
+.delete-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #dc3545;
 }
 
 /* Styling for user feedback messages (success and error). */
