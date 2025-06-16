@@ -53,12 +53,12 @@ export class ValidateBillingPeriodsConstraint
     }
 
     switch (object.billingInterval) {
+      case 'weekly':
+        return billingPeriods <= 26;
       case 'monthly':
         return billingPeriods >= 6 && billingPeriods <= 12;
       case 'yearly':
         return billingPeriods <= 10;
-      case 'weekly':
-        return billingPeriods <= 26;
       // No default case needed due to the check above
     }
   }
