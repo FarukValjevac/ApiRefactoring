@@ -6,15 +6,13 @@
 - [Technologies Used](#%EF%B8%8F-technologies-used)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
-- [Database Setup](#-database-setup)
+- [Database Setup](#%EF%B8%8F-database-setup)
 - [API Endpoints](#-api-endpoints)
 - [Architecture Decisions](#%EF%B8%8F-architecture-decisions)
 - [Implementation Details](#-implementation-details)
 - [Validation Rules](#-validation-rules)
-- [Project Structure](#-project-structure)
 - [Environment Configuration](#-environment-configuration)
 - [Key Assumptions](#-key-assumptions--decisions)
-- [Future Enhancements](#-future-enhancements)
 
 ### 🎯 Goal
 
