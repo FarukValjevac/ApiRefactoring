@@ -1,5 +1,7 @@
 # Membership API Refactoring
 
+In this branch I have corrected all bugs and added some additional features explained in [Task 1](Backend/README.md)
+
 ## 📋 Table of Contents
 
 - [Setup](#setup)
