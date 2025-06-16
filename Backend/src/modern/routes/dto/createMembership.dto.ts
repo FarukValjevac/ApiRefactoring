@@ -12,7 +12,7 @@ import {
   IsNotEmpty,
   IsEnum,
 } from 'class-validator';
-import { BillingInterval } from '../types/memberships.types';
+import { BillingInterval, PaymentMethod } from '../types/memberships.types';
 
 @ValidatorConstraint({ name: 'cashPriceLimit', async: false })
 export class CashPriceLimitConstraint implements ValidatorConstraintInterface {
@@ -118,7 +118,7 @@ export class CreateMembershipDto {
   @IsEnum(['cash', 'credit card'], {
     message: 'invalidPaymentMethod',
   })
-  paymentMethod: string;
+  paymentMethod: PaymentMethod;
 
   @IsNotEmpty({ message: 'missingMandatoryFields' })
   @IsEnum(['monthly', 'weekly', 'yearly'], {
@@ -134,5 +134,5 @@ export class CreateMembershipDto {
 
   @IsOptional()
   @IsDateString({}, { message: 'validFromMustBeAValidDateString' })
-  validFrom?: string;
+  validFrom: string;
 }

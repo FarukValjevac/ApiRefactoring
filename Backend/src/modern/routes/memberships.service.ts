@@ -161,15 +161,15 @@ export class MembershipsService {
   ): Partial<MembershipPeriodEntity>[] {
     const periods: Partial<MembershipPeriodEntity>[] = [];
     let periodStart = new Date(validFrom);
-
     for (let i = 0; i < billingPeriods; i++) {
       const periodEnd = this.calculatePeriodEnd(periodStart, billingInterval);
+      const periodState = this.determineMembershipState(validFrom, periodEnd);
       periods.push({
         uuid: uuidv4(),
         membershipId,
         start: new Date(periodStart),
         end: periodEnd,
-        state: 'planned',
+        state: periodState,
       });
       periodStart = new Date(periodEnd);
     }
