@@ -43,45 +43,6 @@ Modern NestJS backend for membership management with:
 - Docker and Docker Compose
 - Git
 
-### 🚀 Installation
-
-Default values work out of the box, but you can customize:
-
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-DB_DATABASE=memberships_db
-```
-
-### 🗄️ Database Setup
-
-1. **Start PostgreSQL container**
-
-   ```bash
-   docker-compose up -d
-   ```
-
-2. **Verify container is running**
-
-   ```bash
-   docker-compose ps
-   ```
-
-3. **Database initialization**
-
-   The database is automatically initialized with:
-
-   - Schema creation (`src/init-db/sql-schema.sql`)
-   - Seed data (`src/init-db/seed-data.sql`)
-
-4. **Manual database initialization** (if needed)
-   ```bash
-    docker exec -i memberships-postgres psql -U postgres -d memberships_db < src/init-db/sql-shema.sql
-    docker exec -i memberships-postgres psql -U postgres -d memberships_db < src/init-db/seed-data.sql
-   ```
-
 ### 📌 API Endpoints
 
 #### **POST** `/memberships`

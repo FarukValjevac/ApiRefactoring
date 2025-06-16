@@ -29,44 +29,79 @@ In this branch I have corrected all bugs and added some additional features expl
    ```bash
    # secret .env variables should never be provided in the README
    PORT=3000
+
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USERNAME=postgres
+   DB_PASSWORD=postgres
+   DB_DATABASE=memberships_db
    ```
 
-4. **Build the backend:**
+### 🗄️ Database Setup
+
+1. **Start PostgreSQL container**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Verify container is running**
+
+   ```bash
+   docker-compose ps
+   ```
+
+3. **Database initialization**
+
+   The database is automatically initialized with:
+
+   - Schema creation (`src/init-db/sql-schema.sql`)
+   - Seed data (`src/init-db/seed-data.sql`)
+
+4. **Manual database initialization** (if needed)
+
+   ```bash
+    docker exec -i memberships-postgres psql -U postgres -d memberships_db < src/init-db/sql-shema.sql
+
+    docker exec -i memberships-postgres psql -U postgres -d memberships_db < src/init-db/seed-data.sql
+   ```
+
+5. **Build the backend:**
 
    ```bash
    npm run build
    ```
 
-5. **Start the backend development server:**
+6. **Start the backend development server:**
 
    ```bash
    npm run start:nest:dev  # for NestJS backend
    npm run start:express   # for Express backend (legacy)
    ```
 
-6. **Run backend tests:**
+7. **Run backend tests:**
 
    ```bash
    npm run test
    ```
 
-7. **Navigate to the frontend and install dependencies:**
+8. **Navigate to the frontend and install dependencies:**
 
    ```bash
    cd ../frontend
    npm install
    ```
 
-8. **Start the frontend development server:**
+9. **Start the frontend development server:**
 
    ```bash
    npm run dev
    ```
 
-9. **Run frontend tests:**
-   ```bash
-   npm run test
-   ```
+10. **Run frontend tests:**
+    ```bash
+    npm run test
+    ```
 
 The frontend will run on `http://localhost:5173/`, and the backend on `http://localhost:3000`.
 
