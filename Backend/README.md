@@ -1,39 +1,94 @@
-## ✅ Task 1 – Backend Modernization
+# Memberships API - NestJS Backend with PostgreSQL
 
 ## 📋 Table of Contents
 
 - [Goal](#-goal)
 - [Technologies Used](#%EF%B8%8F-technologies-used)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Database Setup](#-database-setup)
 - [API Endpoints](#-api-endpoints)
 - [Architecture Decisions](#%EF%B8%8F-architecture-decisions)
 - [Implementation Details](#-implementation-details)
-- [Intentionally Preserved Legacy Bugs](#-intentionally-preserved-legacy-bugs)
-- [Time Estimation](#%EF%B8%8F-time-estimation)
+- [Validation Rules](#-validation-rules)
+- [Project Structure](#-project-structure)
+- [Environment Configuration](#-environment-configuration)
 - [Key Assumptions](#-key-assumptions--decisions)
-- [Final Notes](#-final-notes)
+- [Future Enhancements](#-future-enhancements)
 
 ### 🎯 Goal
 
-Refactor legacy Express endpoints `/legacy/memberships` (GET & POST) into a modern, maintainable NestJS backend using TypeScript, with:
+Modern NestJS backend for membership management with:
 
-- Separation of concerns
-- Type safety
-- Declarative validation
-- **100% backward compatibility** with existing API contracts
+- **PostgreSQL database** with TypeORM integration
+- **Docker containerization** for easy deployment
+- **Type safety** with TypeScript
+- **Declarative validation** using class-validator
+- **Clean architecture** with separation of concerns
+- **Automated billing period generation**
 
 ### 🛠️ Technologies Used
 
-- **NestJS** – Modern, modular Node.js framework with built-in TypeScript support
+- **NestJS 11** – Modern, modular Node.js framework
 - **TypeScript** – Static typing and enhanced developer experience
+- **PostgreSQL** – Relational database for persistent storage
+- **TypeORM** – Object-Relational Mapping for database operations
+- **Docker & Docker Compose** – Containerization and orchestration
 - **class-validator** – Declarative validation decorators
 - **uuid** – Unique identifier generation
-- **Mock JSON Files** – In-memory data storage (matching legacy behavior)
+- **@nestjs/config** – Environment variable management
+
+### 📋 Prerequisites
+
+- Node.js (v16 or higher)
+- npm
+- Docker and Docker Compose
+- Git
+
+### 🚀 Installation
+
+Default values work out of the box, but you can customize:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_DATABASE=memberships_db
+```
+
+### 🗄️ Database Setup
+
+1. **Start PostgreSQL container**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Verify container is running**
+
+   ```bash
+   docker-compose ps
+   ```
+
+3. **Database initialization**
+
+   The database is automatically initialized with:
+
+   - Schema creation (`src/init-db/sql-schema.sql`)
+   - Seed data (`src/init-db/seed-data.sql`)
+
+4. **Manual database initialization** (if needed)
+   ```bash
+    docker exec -i memberships-postgres psql -U postgres -d memberships_db < src/init-db/sql-shema.sql
+    docker exec -i memberships-postgres psql -U postgres -d memberships_db < src/init-db/seed-data.sql
+   ```
 
 ### 📌 API Endpoints
 
 #### **POST** `/memberships`
 
-Creates a new membership and auto-generates billing periods based on business rules.
+Creates a new membership and auto-generates billing periods.
 
 **Request Body:**
 
@@ -56,14 +111,14 @@ Creates a new membership and auto-generates billing periods based on business ru
     "id": 4,
     "uuid": "192542ac-d300-415d-9626-852f3412c875",
     "name": "Gold Plan",
-    "state": "active",
+    "userId": 2000,
+    "recurringPrice": 60,
     "validFrom": "2024-07-01T00:00:00.000Z",
     "validUntil": "2025-01-01T00:00:00.000Z",
-    "userId": 2000,
+    "state": "active",
     "paymentMethod": "credit card",
-    "recurringPrice": 60,
-    "billingPeriods": 6,
-    "billingInterval": "monthly"
+    "billingInterval": "monthly",
+    "billingPeriods": 6
   },
   "membershipPeriods": [
     {
@@ -72,7 +127,7 @@ Creates a new membership and auto-generates billing periods based on business ru
       "membership": 4,
       "start": "2024-07-01T00:00:00.000Z",
       "end": "2024-08-01T00:00:00.000Z",
-      "state": "issued"
+      "state": "planned"
     }
     // ... additional periods
   ]
@@ -96,241 +151,185 @@ Returns all memberships with their associated billing periods.
 ```json
 [
   {
-    "membership": {},
-    "periods": []
+    "membership": {
+      "id": 1,
+      "uuid": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "Platinum Plan",
+      "userId": 2000,
+      "recurringPrice": 150,
+      "validFrom": "2023-01-01T00:00:00.000Z",
+      "validUntil": "2023-12-31T00:00:00.000Z",
+      "state": "expired",
+      "paymentMethod": "credit card",
+      "billingInterval": "monthly",
+      "billingPeriods": 12
+    },
+    "periods": [
+      {
+        "id": 1,
+        "uuid": "123e4567-e89b-12d3-a456-426614174000",
+        "membership": 1,
+        "start": "2023-01-01T00:00:00.000Z",
+        "end": "2023-01-31T00:00:00.000Z",
+        "state": "issued"
+      }
+    ]
   }
 ]
 ```
 
 ### 🏗️ Architecture Decisions
 
-#### **1. Service-Controller Pattern**
+#### **1. PostgreSQL with TypeORM**
 
-- **Decision**: Separated HTTP handling (Controller) from business logic (Service)
+- **Decision**: Migrated from in-memory JSON storage to PostgreSQL
 - **Benefits**:
-  - Follows NestJS best practices and SOLID principles
-  - Improves testability - services can be unit tested independently
-  - Enables business logic reuse across different controllers
-  - Clear separation of concerns
+  - Data persistence across server restarts
+  - ACID compliance and data integrity
+  - Scalability and concurrent access
+  - Rich querying capabilities
+  - Foreign key constraints ensure referential integrity
 
-#### **2. Module-Based Architecture**
+#### **2. Docker Containerization**
 
-- **Implementation**: Created `MembershipsModule` encapsulating all membership functionality
+- **Implementation**: PostgreSQL runs in Docker with automatic initialization
 - **Benefits**:
-  - Leverages NestJS dependency injection
-  - Promotes feature isolation and modularity
-  - Facilitates future microservice extraction
-  - Clear feature boundaries
+  - Consistent development environment
+  - Easy deployment and scaling
+  - Automated database setup with init scripts
+  - Volume persistence for data
 
-#### **3. Declarative Validation Strategy**
+#### **3. Service-Repository Pattern**
 
-- **Decision**: Replaced imperative validation with `class-validator` decorators
-- **Implementation**:
-  ```typescript
-  @IsNotEmpty({ message: 'missingMandatoryFields' })
-  @IsString({ message: 'missingMandatoryFields' })
-  name: string;
+- **Architecture**:
+  ```
+  Controller → Service → Repository → Database
   ```
 - **Benefits**:
-  - Cleaner, more maintainable code
-  - Automatic validation via `ValidationPipe`
-  - Centralized validation logic in DTOs
-  - Type transformation included
+  - Clear separation of concerns
+  - Database operations abstracted in repositories
+  - Business logic isolated in services
+  - Easy to mock for testing
 
-#### **4. Custom Validators for Business Rules**
+#### **4. Entity-Interface Mapping**
 
-- **Created Two Custom Validators**:
-  - `CashPriceLimitConstraint`: Validates cash payments don't exceed 100
-  - `BillingPeriodsRangeConstraint`: Validates billing periods based on interval
-- **Rationale**: Complex conditional validations require custom logic
+- **Decision**: Separate database entities from API interfaces
+- **Implementation**:
+  ```typescript
+  private toMembershipInterface(entity: MembershipEntity): Membership
+  ```
+- **Benefits**:
+  - Decouples database schema from API contract
+  - Flexibility to evolve database without breaking API
+  - Type safety throughout the application
+
+#### **5. Async/Await Pattern**
+
+- **Implementation**: All database operations use async/await
 - **Example**:
   ```typescript
-  @ValidatorConstraint({ name: 'cashPriceLimit', async: false })
-  export class CashPriceLimitConstraint
-    implements ValidatorConstraintInterface
-  {
-    validate(recurringPrice: number, args: ValidationArguments) {
-      const object = args.object as CreateMembershipDto;
-      return !(object.paymentMethod === 'cash' && recurringPrice > 100);
-    }
-  }
+  async createMembership(dto: CreateMembershipDto): Promise<{
+    membership: Membership;
+    membershipPeriods: MembershipPeriod[];
+  }>
   ```
-
-#### **5. Legacy Error Format Compatibility**
-
-- **Challenge**: NestJS returns different error structure than legacy API
-- **Solution**: Created `LegacyValidationExceptionFilter` to transform errors
-- **Implementation**:
-  ```typescript
-  @Controller('memberships')
-  @UseFilters(new LegacyValidationExceptionFilter())
-  export class MembershipsController { ... }
-  ```
-- **Features**:
-  - Transforms NestJS validation errors to legacy format
-  - Respects legacy error priority order
-  - Handles both string and object error responses
-  - Returns single error code (matching legacy behavior)
+- **Benefits**:
+  - Non-blocking I/O operations
+  - Better performance under load
+  - Clean error handling with try/catch
 
 ### 📝 Implementation Details
 
-#### **Error Priority Order** (matching legacy if-else chain):
+#### **Database Schema**
 
-1. `missingMandatoryFields`
-2. `negativeRecurringPrice`
-3. `cashPriceBelow100`
-4. `billingPeriodsMoreThan12Months`
-5. `billingPeriodsLessThan6Months`
-6. `billingPeriodsMoreThan10Years`
-7. `billingPeriodsLessThan3Years`
-8. `invalidBillingPeriods`
+**Memberships Table:**
 
-#### **ValidationPipe Usage**
+- `id` - Auto-incrementing primary key
+- `uuid` - Unique identifier
+- `name` - Membership name
+- `user_id` - Associated user (hardcoded to 2000)
+- `recurring_price` - Monthly/weekly/yearly price
+- `valid_from` / `valid_until` - Membership validity period
+- `state` - Current state (active/pending/expired)
+- `payment_method` - Payment type
+- `billing_interval` - Frequency of billing
+- `billing_periods` - Number of periods
+- `created_at` / `updated_at` - Timestamps
 
-The modernized codebase uses NestJS's `ValidationPipe` for automatic validation:
+**Membership Periods Table:**
 
-```typescript
-@Post()
-create(@Body(ValidationPipe) createMembershipDto: CreateMembershipDto)
-```
+- `id` - Auto-incrementing primary key
+- `uuid` - Unique identifier
+- `membership_id` - Foreign key to memberships
+- `start_date` / `end_date` - Period validity
+- `state` - Period state (planned/issued)
+- `created_at` / `updated_at` - Timestamps
 
-This single decorator replaces many lines of manual validation while providing:
+#### **State Management**
 
-- Automatic constraint validation
-- Type transformation (JSON → DTO instance)
-- Structured error responses
-- Clean controller code
+Membership states are automatically calculated:
 
-#### **Data Management Decisions**
+- **pending**: `validFrom` is in the future
+- **active**: Current date is between `validFrom` and `validUntil`
+- **expired**: `validUntil` is in the past
 
-- **In-Memory Storage**: Maintained to match legacy behavior
-- **Type-Safe Conversions**: Created functions to handle JSON date strings
-- **ID Generation Fix**: Uses `Math.max()` instead of array length to prevent conflicts
+New periods are created with state `planned`.
 
-#### **Preserved Legacy Behaviors**
+### ✅ Validation Rules
 
-- Error message inconsistencies (e.g., "billingPeriodsLessThan3Years" when checking >3)
-- In-memory data loss on restart
-- Hardcoded `userId: 2000`
-- Exact response structures
+#### **Field Validations:**
 
-### 🐛 Intentionally Preserved Legacy Bugs
+1. **name**: Required, must be string
+2. **recurringPrice**: Required, must be number ≥ 0
+3. **paymentMethod**: Required, must be 'cash' or 'credit card'
+4. **billingInterval**: Required, must be 'monthly', 'weekly', or 'yearly'
+5. **billingPeriods**: Required, must be number ≥ 1
+6. **validFrom**: Optional, must be valid date string
 
-To maintain exactly the same error messages as in the legacy code there bugs are **intentionally preserved** in the modernized codebase:
+#### **Business Rule Validations:**
 
-#### **1. Monthly Billing Periods < 6 Validation Never Executes**
+1. **Cash Payment Limit**: Cash payments cannot exceed 100
+2. **Billing Period Constraints**:
+   - **Monthly**: 6-12 periods
+   - **Yearly**: 1-10 periods
+   - **Weekly**: 1-26 periods (max 6 months)
 
-- **Legacy Bug**: Typo in validation code uses `req.billingPeriods` instead of `req.body.billingPeriods`
-- **Effect**: Monthly memberships can be created with 1-5 billing periods without error
-- **Preserved In**: `BillingPeriodsRangeConstraint` - only validates upper bound (≤12)
+### 🔧 Environment Configuration
 
-```javascript
-// Legacy code with bug:
-if (req.billingPeriods < 6) {
-  // Missing .body - this check never runs!
-  return res.status(400).json({ message: 'billingPeriodsLessThan6Months' });
-}
-```
-
-#### **2. Incorrect Error Message for Yearly Billing Periods 4-10**
-
-- **Legacy Bug**: Returns "billingPeriodsLessThan3Years" for values 4-10 (should be "moreThan3Years")
-- **Effect**: Users see semantically incorrect error message
-- **Preserved In**: `BillingPeriodsRangeConstraint.defaultMessage()`
-
-```javascript
-// Legacy bug: says "less than" when value is actually "more than"
-if (req.body.billingPeriods > 3) {
-  if (req.body.billingPeriods > 10) {
-    return { message: 'billingPeriodsMoreThan10Years' };
-  } else {
-    return { message: 'billingPeriodsLessThan3Years' }; // Wrong message!
-  }
-}
-```
-
-#### **3. Weekly Billing Interval Treated as Invalid**
-
-- **Legacy Bug**: 'weekly' is valid for date calculations but validation else clause rejects it
-- **Effect**: Cannot create weekly memberships via API despite backend support
-- **Preserved In**: `BillingIntervalElseClauseConstraint` - treats 'weekly' as invalid
-
-#### **4. Misleading Error for Invalid Billing Intervals**
-
-- **Legacy Bug**: Returns "invalidBillingPeriods" instead of "invalidBillingInterval"
-- **Effect**: Confusing error message when billing interval is the actual problem
-- **Preserved In**: All billing interval validators return "invalidBillingPeriods"
-
-#### **5. No Payment Method Validation**
-
-- **Legacy Bug**: `paymentMethod` used in cash validation but never validated itself
-- **Effect**: Any payment method value accepted (unless it's 'cash' with price > 100)
-- **Preserved In**: No validation decorator on `paymentMethod` field
-
-#### **6. Missing Field Validation Gaps**
-
-- **Legacy Bug**: No explicit validation for required fields like `billingInterval` and `billingPeriods`
-- **Effect**: Missing fields trigger generic else clause instead of specific errors
-- **Preserved In**: Fields marked as required in DTO but rely on custom validators for errors
-
-#### **Implementation Example**
+The application uses `@nestjs/config` for environment management:
 
 ```typescript
-// Example of preserved bug in custom validator
-@ValidatorConstraint({ name: 'billingPeriodsRange', async: false })
-export class BillingPeriodsRangeConstraint {
-  defaultMessage(args: ValidationArguments) {
+TypeOrmModule.forRootAsync({
+  imports: [ConfigModule],
+  useFactory: (configService: ConfigService) => ({
+    type: 'postgres',
+    host: configService.get('DB_HOST', 'localhost'),
+    port: configService.get('DB_PORT', 5432),
+    username: configService.get('DB_USERNAME', 'postgres'),
+    password: configService.get('DB_PASSWORD', 'postgres'),
+    database: configService.get('DB_DATABASE', 'memberships_db'),
     // ...
-    case 'yearly':
-      if (billingPeriods > 3) {
-        // LEGACY BUG PRESERVED: Wrong message for 4-10 years
-        return 'billingPeriodsLessThan3Years';
-      }
-  }
-}
+  }),
+});
 ```
-
-These bugs are documented with comments throughout the codebase to ensure future developers understand they are intentional, not oversights.
-
-### ⏱️ Time Estimation
-
-| Phase                      | Time          |
-| :------------------------- | :------------ |
-| Setup & Analysis           | ~30 mins      |
-| Backend Implementation     | ~6:30 hrs     |
-| Testing                    | ~30 mins      |
-| **Initial Backend Total**  | **~7:30 hrs** |
-| Frontend                   | 4 hrs         |
-| GitHub Actions + Bug Fixes | 2 hrs         |
-| Integration Testing        | 30 mins       |
-| **Total Project Time**     | **~14 hrs**   |
 
 ### 🤔 Key Assumptions & Decisions
 
 #### **Assumptions**
 
-- Mock JSON data simulates persistent storage (no external DB)
-- Data loss on server restart is acceptable (matches legacy behavior)
-- User authentication not implemented (hardcoded `userId: 2000`)
-- All legacy error messages must be preserved exactly, including inconsistencies
-- Response structures must match legacy API 100% for backward compatibility
+- All new membership periods created with state 'planned'
+- Membership state automatically calculated based on dates
+- Payment method defaults to empty string if null in database
 
-#### **Major Decisions**
+#### **Design Decisions**
 
-1. **In-Memory Storage**: Maintained to match legacy behavior and avoid scope creep
-2. **Error Message Bugs**: Preserved inconsistencies (e.g., "billingPeriodsLessThan3Years" when checking >3 years) for compatibility
-3. **Validation Strategy**: Replaced many lines of imperative checks with declarative validators
-4. **Exception Filter**: Created custom filter to transform NestJS errors to legacy format
-5. **Type Safety**: Added comprehensive TypeScript interfaces while handling JSON date limitations
+1. **Database Over Files**: Chose PostgreSQL for data persistence and integrity
+2. **Docker**: Containerized database for consistent environments
+3. **TypeORM**: Selected for its NestJS integration and TypeScript support
+4. **Validation**: Fixed legacy bugs while maintaining API structure
+5. **Async Operations**: All database operations are asynchronous
+6. **Entity Mapping**: Separate entities from interfaces for flexibility
 
-The refactored codebase maintains all legacy behaviors while providing a solid foundation for future enhancements.
+---
 
-## 📦 Final Notes
-
-This modernization demonstrates:
-
-- **Clean Architecture**: Clear separation of concerns with NestJS patterns
-- **Type Safety**: Full TypeScript implementation with proper interfaces
-- **Backward Compatibility**: 100% API compatibility with legacy endpoints
-- **Maintainability**: Declarative validation and modular structure
-- **Future-Ready**: Architecture supports easy database integration
+The API is now ready at `http://localhost:3000` 🚀
