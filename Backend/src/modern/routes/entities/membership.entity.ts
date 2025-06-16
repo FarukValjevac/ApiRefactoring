@@ -40,10 +40,10 @@ export class MembershipEntity {
 
   @Column({
     name: 'payment_method',
-    default: '', // Add a default empty string
+    default: '',
     nullable: false, // Make it non-nullable
   })
-  paymentMethod: string; // Remove the optional ?
+  paymentMethod: string;
 
   @Column({ name: 'billing_interval' })
   billingInterval: BillingInterval;

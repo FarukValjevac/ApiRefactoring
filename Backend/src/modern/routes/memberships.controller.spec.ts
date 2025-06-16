@@ -44,6 +44,7 @@ describe('MembershipsController', () => {
         paymentMethod: 'credit card',
         billingInterval: 'monthly',
         billingPeriods: 6,
+        validFrom: '2025-01-01',
       };
 
       const expectedResponse = {

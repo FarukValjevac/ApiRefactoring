@@ -197,19 +197,7 @@ Returns all memberships with their associated billing periods.
   - Automated database setup with init scripts
   - Volume persistence for data
 
-#### **3. Service-Repository Pattern**
-
-- **Architecture**:
-  ```
-  Controller → Service → Repository → Database
-  ```
-- **Benefits**:
-  - Clear separation of concerns
-  - Database operations abstracted in repositories
-  - Business logic isolated in services
-  - Easy to mock for testing
-
-#### **4. Entity-Interface Mapping**
+#### **3. Entity-Interface Mapping**
 
 - **Decision**: Separate database entities from API interfaces
 - **Implementation**:
@@ -221,7 +209,7 @@ Returns all memberships with their associated billing periods.
   - Flexibility to evolve database without breaking API
   - Type safety throughout the application
 
-#### **5. Async/Await Pattern**
+#### **4. Async/Await Pattern**
 
 - **Implementation**: All database operations use async/await
 - **Example**:

@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { MembershipsService } from './memberships.service';
 import { MembershipEntity } from './entities/membership.entity';
 import { MembershipPeriodEntity } from './entities/membership-period.entity';
+import { PaymentMethod } from './types/memberships.types';
 
 describe('MembershipsService', () => {
   let service: MembershipsService;
@@ -48,9 +49,10 @@ describe('MembershipsService', () => {
       const createDto = {
         name: 'Test Plan',
         recurringPrice: 50,
-        paymentMethod: 'credit card',
+        paymentMethod: 'credit card' as PaymentMethod,
         billingInterval: 'monthly' as const,
         billingPeriods: 6,
+        validFrom: '2025-01-01',
       };
 
       const savedMembership = {
