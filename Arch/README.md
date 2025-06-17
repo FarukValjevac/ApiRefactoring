@@ -53,7 +53,7 @@ The solution implements an event-driven, microservices architecture. It uses a m
 
 1.  **Horizontal Scaling**: Export workers and Email Service consumers auto-scale based on queue depth and Kafka consumer lag, respectively.
 2.  **Performance Optimizations**: This includes database query optimization, CSV streaming for large datasets, S3 multipart uploads, and connection pooling.
-3.  **Resource Management**: Concurrency limits prevent system overload, and circuit breakers protect against failures in external services.
+3.  **Resource Management**: Concurrency limits prevent system overload and circuit breakers protect against failures in external services.
 
 ## 🛡️ Reliability & Error Handling
 
@@ -76,13 +76,6 @@ The solution implements an event-driven, microservices architecture. It uses a m
 1.  **Authentication & Authorization**: JWT/OAuth validation is enforced at the API Gateway. Users can only export their own data.
 2.  **Data Protection**: Data is encrypted both in transit (TLS) and at rest (S3 Server-Side Encryption).
 3.  **Secure Access**: Pre-signed URLs provide secure, time-limited access to files, preventing permanent public links.
-4.  **Compliance**: Supports GDPR-compliant data handling and provides audit logging for all export activity.
-
-## 💰 Cost Optimization
-
-1.  **Compute**: Use of Spot Instances for export workers and auto-scaling to match demand.
-2.  **Storage**: S3 lifecycle policies and intelligent tiering manage storage costs, with compression for large files.
-3.  **Data Transfer**: Regional S3 buckets and CloudFront for downloads reduce egress costs.
 
 ### ⏱️ Time Estimation
 
