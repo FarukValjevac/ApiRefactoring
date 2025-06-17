@@ -37,7 +37,6 @@ export class MembershipsService {
     );
 
     const state = this.determineMembershipState(validFrom, validUntil);
-    console.log('####', createMembershipDto.assignedBy);
     // Create and save membership
     const membershipEntity = this.membershipRepository.create({
       uuid: uuidv4(),
