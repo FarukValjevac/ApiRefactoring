@@ -37,7 +37,7 @@ export class MembershipsService {
     );
 
     const state = this.determineMembershipState(validFrom, validUntil);
-
+    console.log('####', createMembershipDto.assignedBy);
     // Create and save membership
     const membershipEntity = this.membershipRepository.create({
       uuid: uuidv4(),
@@ -47,6 +47,7 @@ export class MembershipsService {
       validUntil,
       userId: this.DEFAULT_USER_ID,
       paymentMethod: createMembershipDto.paymentMethod,
+      assignedBy: createMembershipDto.assignedBy || 'subscriber',
       recurringPrice: createMembershipDto.recurringPrice,
       billingPeriods: createMembershipDto.billingPeriods,
       billingInterval: createMembershipDto.billingInterval,
@@ -153,6 +154,24 @@ export class MembershipsService {
     return 'active';
   }
 
+  /**
+   * Determines the state of a membership period based on its dates.
+   * BUSINESS RULE: Period states follow the same logic as membership states:
+   * - 'pending': Period hasn't started yet
+   * - 'active': Current date is within the period
+   * - 'expired': Period has ended
+   *
+   * @param start - The start date of the period
+   * @param end - The end date of the period
+   * @returns The calculated state
+   */
+  private determinePeriodState(start: Date, end: Date): string {
+    const now = new Date();
+    if (start > now) return 'pending';
+    if (end < now) return 'expired';
+    return 'active';
+  }
+
   private createMembershipPeriodEntities(
     membershipId: number,
     validFrom: Date,
@@ -161,9 +180,13 @@ export class MembershipsService {
   ): Partial<MembershipPeriodEntity>[] {
     const periods: Partial<MembershipPeriodEntity>[] = [];
     let periodStart = new Date(validFrom);
+
     for (let i = 0; i < billingPeriods; i++) {
       const periodEnd = this.calculatePeriodEnd(periodStart, billingInterval);
-      const periodState = this.determineMembershipState(validFrom, periodEnd);
+
+      // Calculate the state for this specific period
+      const periodState = this.determinePeriodState(periodStart, periodEnd);
+
       periods.push({
         uuid: uuidv4(),
         membershipId,
@@ -202,6 +225,7 @@ export class MembershipsService {
       name: entity.name,
       userId: entity.userId,
       recurringPrice: Number(entity.recurringPrice),
+      assignedBy: entity.assignedBy,
       validFrom: entity.validFrom,
       validUntil: entity.validUntil,
       state: entity.state,

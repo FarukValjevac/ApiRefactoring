@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { MembershipPeriodEntity } from './membership-period.entity';
-import { BillingInterval } from '../types/memberships.types';
+import { BillingInterval, PaymentMethod } from '../types/memberships.types';
 
 @Entity('memberships')
 export class MembershipEntity {
@@ -43,7 +43,7 @@ export class MembershipEntity {
     default: '',
     nullable: false, // Make it non-nullable
   })
-  paymentMethod: string;
+  paymentMethod: PaymentMethod;
 
   @Column({ name: 'billing_interval' })
   billingInterval: BillingInterval;

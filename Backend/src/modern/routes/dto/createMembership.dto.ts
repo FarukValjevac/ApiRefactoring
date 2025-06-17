@@ -59,7 +59,6 @@ export class ValidateBillingPeriodsConstraint
         return billingPeriods >= 6 && billingPeriods <= 12;
       case 'yearly':
         return billingPeriods <= 10;
-      // No default case needed due to the check above
     }
   }
 
@@ -113,6 +112,16 @@ export class CreateMembershipDto {
   @Min(0, { message: 'negativeRecurringPrice' })
   @CashPriceLimit()
   recurringPrice: number;
+
+  /**
+   * Optional field to specify who assigned the membership.
+   * If not provided, the service will default to 'subscriber'.
+   * This allows for future flexibility (e.g., 'admin', 'system', 'gift')
+   * while maintaining backward compatibility.
+   */
+  @IsOptional()
+  @IsString({ message: 'assignedByMustBeAString' })
+  assignedBy?: string;
 
   @IsNotEmpty({ message: 'missingMandatoryFields' })
   @IsEnum(['cash', 'credit card'], {

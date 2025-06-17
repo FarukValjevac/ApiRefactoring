@@ -6,6 +6,7 @@ export interface Membership {
   name: string;
   userId: number;
   recurringPrice: number;
+  assignedBy?: string;
   validFrom: Date;
   validUntil: Date;
   state: string;
