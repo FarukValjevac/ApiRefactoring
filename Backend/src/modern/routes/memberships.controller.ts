@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { MembershipsService } from './memberships.service';
 import {
@@ -34,6 +36,20 @@ export class MembershipsController {
     { membership: Membership; periods: MembershipPeriod[] }[]
   > {
     return this.membershipsService.getAllMemberships();
+  }
+
+  @Post(':id/terminate')
+  async terminateMembership(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ message: string }> {
+    const result = await this.membershipsService.terminateMembership(id);
+    if (!result) {
+      throw new HttpException(
+        'Termination not allowed: Membership must be active/pending and not in the last period',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return { message: 'Membership terminated successfully' };
   }
 
   @Delete(':id')

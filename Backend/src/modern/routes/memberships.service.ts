@@ -10,6 +10,7 @@ import {
 } from './interfaces/memberships.interfaces';
 import { MembershipEntity } from './entities/membership.entity';
 import { MembershipPeriodEntity } from './entities/membership-period.entity';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class MembershipsService {
@@ -76,6 +77,59 @@ export class MembershipsService {
       membership,
       membershipPeriods,
     };
+  }
+
+  async terminateMembership(id: number): Promise<boolean> {
+    const membership = await this.membershipRepository.findOne({
+      where: { id },
+      relations: ['periods'],
+    });
+
+    if (!membership) return false;
+
+    // Check if membership is active or pending
+    const isValidState =
+      membership.state === 'active' || membership.state === 'pending';
+
+    if (!isValidState) return false;
+
+    // Get current date
+    const now = dayjs();
+
+    // Find all future periods (periods that haven't ended yet)
+    const remainingPeriods = membership.periods.filter((period) =>
+      dayjs(period.end).isAfter(now),
+    );
+
+    // Check if we're in the last period
+    // If there's only one remaining period and it's currently active, we can't terminate
+    if (remainingPeriods.length === 1) {
+      const lastPeriod = remainingPeriods[0];
+      const isInLastPeriod =
+        dayjs(lastPeriod.start).isBefore(now) ||
+        dayjs(lastPeriod.start).isSame(now);
+
+      if (isInLastPeriod) {
+        return false; // Cannot terminate if in the last period
+      }
+    }
+
+    // If there are no remaining periods (all expired), we can't terminate
+    if (remainingPeriods.length === 0) {
+      return false;
+    }
+
+    // Terminate all remaining periods
+    for (const period of remainingPeriods) {
+      period.state = 'terminated';
+      await this.membershipPeriodRepository.save(period);
+    }
+
+    // Set membership state to terminated
+    membership.state = 'terminated';
+    await this.membershipRepository.save(membership);
+
+    return true;
   }
 
   async getAllMemberships(): Promise<

@@ -128,13 +128,14 @@ button:hover {
 }
 
 /* Individual card styling for each membership item in the list.
-   DECISION: Add position: relative to enable absolute positioning of the delete button.
-   This allows the button to be positioned within the card's boundaries.
+   DECISION: Add position: relative to enable absolute positioning of the action buttons.
+   This allows the buttons to be positioned within the card's boundaries.
 */
 .membership-item-card {
   border: 1px solid #eee;
   border-radius: 8px;
   padding: 1rem;
+  padding-top: 2.5rem; /* Add space for action buttons */
   text-align: left;
   background-color: #fff;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
@@ -163,42 +164,62 @@ button:hover {
   font-size: 0.95rem;
 }
 
-/* Delete button styling.
-   DECISION: Position the button absolutely in the top-right corner of the card.
-   Use opacity to hide it by default and show on card hover for a clean UI.
-   The red color scheme clearly indicates a destructive action.
+/* Action buttons container
+   DECISION: Position the action buttons absolutely in the top-right corner.
+   Use flexbox to arrange them horizontally with proper spacing.
 */
-.delete-button {
+.action-buttons {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  width: auto;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  display: flex;
+  gap: 0.5rem;
   opacity: 0;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
-/* Show the delete button when hovering over the card. */
-.membership-item-card:hover .delete-button {
+/* Show the action buttons when hovering over the card. */
+.membership-item-card:hover .action-buttons {
   opacity: 1;
 }
 
-/* Hover state for the delete button itself. */
+/* Shared styles for action buttons */
+.delete-button,
+.terminate-button {
+  width: auto;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+/* Delete button styling - red color scheme */
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+
 .delete-button:hover {
   background-color: #c82333;
 }
 
-/* Disabled state for the delete button (while deletion is in progress). */
-.delete-button:disabled {
+/* Terminate button styling - orange/warning color scheme */
+.terminate-button {
+  background-color: #ff8c00;
+  color: white;
+}
+
+.terminate-button:hover {
+  background-color: #e67e00;
+}
+
+/* Disabled state for buttons (while action is in progress). */
+.delete-button:disabled,
+.terminate-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: #dc3545;
 }
 
 /* Styling for user feedback messages (success and error). */
