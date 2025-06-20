@@ -24,6 +24,7 @@ Modern NestJS backend for membership management with:
 - **Declarative validation** using class-validator
 - **Clean architecture** with separation of concerns
 - **Automated billing period generation**
+- **Membership lifecycle management** (create, terminate, delete)
 
 ### 🛠️ Technologies Used
 
@@ -137,6 +138,77 @@ Returns all memberships with their associated billing periods.
 ]
 ```
 
+#### **POST** `/memberships/:id/terminate`
+
+Terminates an active or pending membership by canceling all future billing periods.
+
+**Path Parameters:**
+
+- `id` (number) - The membership ID to terminate
+
+**Business Rules:**
+
+- Membership must be in `active` or `pending` state
+- Cannot terminate if currently in the last billing period
+- Must have remaining future periods to terminate
+- All future periods will be marked as `terminated`
+- Membership state will be set to `terminated`
+
+**Success Response (200):**
+
+```json
+{
+  "message": "Membership terminated successfully"
+}
+```
+
+**Error Response (400):**
+
+```json
+{
+  "message": "Termination not allowed: Membership must be active/pending and not in the last period"
+}
+```
+
+**Example Use Cases:**
+
+- ✅ **Allowed**: Active membership with 2+ remaining periods
+- ✅ **Allowed**: Pending membership that hasn't started yet
+- ✅ **Allowed**: 1 remaining period that hasn't started yet (future period)
+- ❌ **Not Allowed**: Already expired membership
+- ❌ **Not Allowed**: Currently in the final billing period (only 1 remaining period and you're in it)
+- ❌ **Not Allowed**: Membership with no future periods
+
+#### **DELETE** `/memberships/:id`
+
+Permanently deletes a membership and all associated billing periods.
+
+**Path Parameters:**
+
+- `id` (number) - The membership ID to delete
+
+**Important Notes:**
+
+- This performs a **hard delete** - data cannot be recovered
+- All associated membership periods are automatically deleted (CASCADE)
+- Use with caution in production environments
+
+**Success Response (200):**
+
+```json
+{
+  "message": "Membership with ID 4 has been successfully deleted"
+}
+```
+
+**Error Response (404):**
+
+```json
+{
+  "message": "Membership with ID 999 not found"
+}
+```
+
 ### 🏗️ Architecture Decisions
 
 #### **1. PostgreSQL with TypeORM**
@@ -185,6 +257,17 @@ Returns all memberships with their associated billing periods.
   - Better performance under load
   - Clean error handling with try/catch
 
+#### **5. Membership Lifecycle Management**
+
+- **Decision**: Implement separate terminate and delete operations
+- **Implementation**:
+  - **Terminate**: Soft cancellation preserving historical data
+  - **Delete**: Hard removal for complete cleanup
+- **Benefits**:
+  - Flexible membership management options
+  - Data retention for terminated memberships
+  - Complete cleanup capability when needed
+
 ### 📝 Implementation Details
 
 #### **Database Schema**
@@ -197,7 +280,7 @@ Returns all memberships with their associated billing periods.
 - `user_id` - Associated user (hardcoded to 2000)
 - `recurring_price` - Monthly/weekly/yearly price
 - `valid_from` / `valid_until` - Membership validity period
-- `state` - Current state (active/pending/expired)
+- `state` - Current state (active/pending/expired/terminated)
 - `payment_method` - Payment type
 - `billing_interval` - Frequency of billing
 - `billing_periods` - Number of periods
@@ -209,18 +292,34 @@ Returns all memberships with their associated billing periods.
 - `uuid` - Unique identifier
 - `membership_id` - Foreign key to memberships
 - `start_date` / `end_date` - Period validity
-- `state` - Period state (planned/issued)
+- `state` - Period state (pending/active/expired/terminated)
 - `created_at` / `updated_at` - Timestamps
 
 #### **State Management**
 
-Membership states are automatically calculated:
+**Membership States:**
 
 - **pending**: `validFrom` is in the future
 - **active**: Current date is between `validFrom` and `validUntil`
 - **expired**: `validUntil` is in the past
+- **terminated**: Membership was cancelled before natural expiration
 
-New periods are created with state `planned`.
+**Period States:**
+
+- **pending**: Period hasn't started yet
+- **active**: Current date is within the period
+- **expired**: Period has ended naturally
+- **terminated**: Period was cancelled before completion
+
+#### **Termination Logic**
+
+The termination process follows these business rules:
+
+1. **State Validation**: Only `active` or `pending` memberships can be terminated
+2. **Period Analysis**: Checks remaining future periods
+3. **Last Period Protection**: Cannot terminate if currently in the final period
+4. **Cascade Termination**: All future periods are marked as `terminated`
+5. **Membership Update**: Main membership state becomes `terminated`
 
 ### ✅ Validation Rules
 
@@ -240,6 +339,10 @@ New periods are created with state `planned`.
    - **Monthly**: 6-12 periods
    - **Yearly**: 1-10 periods
    - **Weekly**: 1-26 periods (max 6 months)
+3. **Termination Rules**:
+   - Only active/pending memberships can be terminated
+   - Cannot terminate while in the last billing period
+   - Must have future periods to cancel
 
 ### 🔧 Environment Configuration
 
@@ -264,9 +367,10 @@ TypeOrmModule.forRootAsync({
 
 #### **Assumptions**
 
-- All new membership periods created with state 'planned'
+- All new membership periods created with state 'pending'
 - Membership state automatically calculated based on dates
 - Payment method defaults to empty string if null in database
+- Terminated memberships preserve historical data for auditing
 
 #### **Design Decisions**
 
@@ -276,7 +380,18 @@ TypeOrmModule.forRootAsync({
 4. **Validation**: Fixed legacy bugs while maintaining API structure
 5. **Async Operations**: All database operations are asynchronous
 6. **Entity Mapping**: Separate entities from interfaces for flexibility
+7. **Lifecycle Management**: Distinct terminate vs delete operations for flexibility
+8. **Cascade Constraints**: Database-level CASCADE DELETE for data consistency
 
 ---
 
 The API is now ready at `http://localhost:3000` 🚀
+
+### 🔄 Common API Workflows
+
+#### **Creating and Managing Memberships:**
+
+1. **Create** → `POST /memberships`
+2. **View All** → `GET /memberships`
+3. **Cancel Early** → `POST /memberships/:id/terminate`
+4. **Remove Completely** → `DELETE /memberships/:id`
